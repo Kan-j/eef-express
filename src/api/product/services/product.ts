@@ -9,7 +9,10 @@ export default factories.createCoreService('api::product.product', ({ strapi }) 
    * Find all products with pagination, filters, and search
    */
   async findProducts(params: any) {
-    const filters: any = {};
+    // Initialize filters with publishedAt not null to only get published products
+    const filters: any = {
+      publishedAt: { $notNull: true }
+    };
 
     // Price range filter
     if (params.minPrice || params.maxPrice) {
@@ -41,7 +44,7 @@ export default factories.createCoreService('api::product.product', ({ strapi }) 
       filters.ratings = { $gte: parseFloat(params.minRating) };
     }
 
-    // Get products with filters
+    // Get products with filters using the standard entityService
     const { results, pagination } = await strapi.entityService.findPage('api::product.product', {
       filters,
       populate: ['images', 'category'],
@@ -61,7 +64,7 @@ export default factories.createCoreService('api::product.product', ({ strapi }) 
       populate: ['images', 'category', 'reviews'],
     });
 
-    if (!product) {
+    if (!product || !product.publishedAt) {
       throw new Error('Product not found');
     }
 
@@ -85,7 +88,8 @@ export default factories.createCoreService('api::product.product', ({ strapi }) 
     const relatedProducts = await strapi.entityService.findMany('api::product.product', {
       filters: {
         id: { $ne: productId },
-        category: { id: product.category.id }
+        category: { id: product.category.id },
+        publishedAt: { $notNull: true }
       },
       populate: ['images', 'category'],
       limit
@@ -100,7 +104,8 @@ export default factories.createCoreService('api::product.product', ({ strapi }) 
   async getTopRatedProducts(limit = 5) {
     const products = await strapi.entityService.findMany('api::product.product', {
       filters: {
-        ratings: { $gte: 4 } // Products with ratings of 4 or higher
+        ratings: { $gte: 4 }, // Products with ratings of 4 or higher
+        publishedAt: { $notNull: true }
       },
       populate: ['images', 'category'],
       sort: 'ratings:desc',
@@ -116,7 +121,8 @@ export default factories.createCoreService('api::product.product', ({ strapi }) 
   async getNewestProducts(limit = 5) {
     const products = await strapi.entityService.findMany('api::product.product', {
       filters: {
-        stock: { $gt: 0 } // Only in-stock products
+        stock: { $gt: 0 }, // Only in-stock products
+        publishedAt: { $notNull: true }
       },
       populate: ['images', 'category'],
       sort: 'createdAt:desc',

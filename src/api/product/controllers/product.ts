@@ -7,6 +7,8 @@ import { factories } from '@strapi/strapi';
 export default factories.createCoreController('api::product.product', ({ strapi }) => ({
   /**
    * Find all products with pagination, filters, and search
+   *
+   * Only returns published products (where publishedAt is not null) to avoid duplicates.
    */
   async find(ctx) {
     try {
