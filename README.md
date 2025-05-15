@@ -1,10 +1,75 @@
-# 🚀 Getting started with Strapi
+# EEF Express CMS
 
-Strapi comes with a full featured [Command Line Interface](https://docs.strapi.io/dev-docs/cli) (CLI) which lets you scaffold and manage your project in seconds.
+A Strapi-based CMS for the EEF Express e-commerce application with custom controllers, services, and endpoints.
+
+## Overview
+
+This project is a headless CMS built with Strapi that provides a robust API for an e-commerce application. It includes custom implementations for products, cart management, checkout process, order management, and delivery services.
+
+## Features
+
+- **Product Management**: Advanced filtering, searching, and pagination
+- **Cart Management**: Add, remove, update items, and calculate totals
+- **Checkout Process**: Process cart items into orders with various delivery options
+- **Order Management**: Create orders, update status, and track history
+- **Delivery Services**: Multiple delivery types with different pricing options
+- **Pick-Drop Service**: Create and manage delivery requests
+
+## API Documentation
+
+- [Product Endpoints](./products-docs.md): Detailed documentation for all product-related endpoints
+
+## Delivery Options
+
+The system supports multiple delivery types:
+
+- **Express Delivery**: 🚀 Delivered within a few hours. Ideal for urgent items.
+- **Same-Day Delivery**: 📦 Order early, receive it the same day. Fast and reliable.
+- **Next-Day Delivery**: 📅 Perfect for non-urgent items. Guaranteed delivery by the next day.
+- **Scheduled Delivery**: 🕒 Choose your preferred delivery date and time. Flexible and convenient.
+- **Standard Delivery**: ⏳ Affordable option for deliveries within 1–3 business days.
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v14 or later)
+- npm or yarn
+
+### Installation
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/Kan-j/eef-express.git
+   ```
+
+2. Install dependencies:
+   ```
+   cd eef-express
+   npm install
+   ```
+
+3. Start the development server:
+   ```
+   npm run develop
+   ```
+
+4. Access the admin panel:
+   ```
+   http://localhost:1337/admin
+   ```
+
+## Project Structure
+
+- `src/api/`: Contains all API resources (controllers, services, routes)
+- `src/components/`: Reusable components for content types
+- `products-docs.md`: Documentation for product endpoints
+
+## Strapi Commands
 
 ### `develop`
 
-Start your Strapi application with autoReload enabled. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-develop)
+Start your Strapi application with autoReload enabled.
 
 ```
 npm run develop
@@ -14,7 +79,7 @@ yarn develop
 
 ### `start`
 
-Start your Strapi application with autoReload disabled. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-start)
+Start your Strapi application with autoReload disabled.
 
 ```
 npm run start
@@ -24,7 +89,7 @@ yarn start
 
 ### `build`
 
-Build your admin panel. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-build)
+Build your admin panel.
 
 ```
 npm run build
@@ -32,30 +97,6 @@ npm run build
 yarn build
 ```
 
-## ⚙️ Deployment
+## License
 
-Strapi gives you many possible deployment options for your project including [Strapi Cloud](https://cloud.strapi.io). Browse the [deployment section of the documentation](https://docs.strapi.io/dev-docs/deployment) to find the best solution for your use case.
-
-```
-yarn strapi deploy
-```
-
-## 📚 Learn more
-
-- [Resource center](https://strapi.io/resource-center) - Strapi resource center.
-- [Strapi documentation](https://docs.strapi.io) - Official Strapi documentation.
-- [Strapi tutorials](https://strapi.io/tutorials) - List of tutorials made by the core team and the community.
-- [Strapi blog](https://strapi.io/blog) - Official Strapi blog containing articles made by the Strapi team and the community.
-- [Changelog](https://strapi.io/changelog) - Find out about the Strapi product updates, new features and general improvements.
-
-Feel free to check out the [Strapi GitHub repository](https://github.com/strapi/strapi). Your feedback and contributions are welcome!
-
-## ✨ Community
-
-- [Discord](https://discord.strapi.io) - Come chat with the Strapi community including the core team.
-- [Forum](https://forum.strapi.io/) - Place to discuss, ask questions and find answers, show your Strapi project and get feedback or just talk with other Community members.
-- [Awesome Strapi](https://github.com/strapi/awesome-strapi) - A curated list of awesome things related to Strapi.
-
----
-
-<sub>🤫 Psst! [Strapi is hiring](https://strapi.io/careers).</sub>
+This project is licensed under the MIT License.
