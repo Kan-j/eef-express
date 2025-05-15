@@ -10,9 +10,12 @@ export default factories.createCoreService('api::product.product', ({ strapi }) 
    */
   async findProducts(params: any) {
     // Initialize filters with publishedAt not null to only get published products
+    // Using $notNull ensures we only get products that have been published
     const filters: any = {
       publishedAt: { $notNull: true }
     };
+
+
 
     // Price range filter
     if (params.minPrice || params.maxPrice) {
@@ -60,15 +63,48 @@ export default factories.createCoreService('api::product.product', ({ strapi }) 
    * Get product details by ID
    */
   async getProductDetails(productId: number) {
-    const product = await strapi.entityService.findOne('api::product.product', productId, {
-      populate: ['images', 'category', 'reviews'],
-    });
+    try {
+      console.log(`Fetching product details for ID: ${productId}`);
 
-    if (!product || !product.publishedAt) {
-      throw new Error('Product not found');
+      const product = await strapi.entityService.findOne('api::product.product', productId, {
+        populate: ['images', 'category', 'reviews'],
+      });
+
+      console.log('Product found:', product ? 'Yes' : 'No');
+      if (product) {
+        console.log('Product published:', product.publishedAt ? 'Yes' : 'No');
+
+        // Log the structure of the product object to understand its format
+        console.log('Product structure:', JSON.stringify({
+          id: product.id,
+          attributes: {
+            name: product.name,
+            publishedAt: product.publishedAt,
+            // Add other relevant fields
+          }
+        }, null, 2));
+      }
+
+      if (!product) {
+        throw new Error(`Product not found with ID: ${productId}`);
+      }
+
+      // Log the actual value of publishedAt for debugging
+      console.log('publishedAt value:', product.publishedAt);
+
+      // Check if publishedAt exists and is not null
+      // In Strapi, publishedAt could be a Date object, a string, or null
+      if (product.publishedAt === null || product.publishedAt === undefined) {
+        throw new Error(`Product with ID: ${productId} exists but is not published`);
+      }
+
+      // If we get here, the product is published
+
+      return product;
+    } catch (error) {
+      console.error('Error in getProductDetails:', error.message);
+      throw error;
     }
-
-    return product;
   },
 
   /**
