@@ -1,0 +1,19 @@
+{
+  "collectionName": "components_custom_status_logs",
+  "info": {
+    "displayName": "statusLog",
+    "icon": "arrowLeft"
+  },
+  "options": {},
+  "attributes": {
+    "shippingStatus": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "datetime"
+    },
+    "locationNote": {
+      "type": "string"
+    }
+  }
+}

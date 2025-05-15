@@ -1,0 +1,40 @@
+{
+  "kind": "collectionType",
+  "collectionName": "delivery_pricings",
+  "info": {
+    "singularName": "delivery-pricing",
+    "pluralName": "delivery-pricings",
+    "displayName": "Delivery Pricing",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "amount": {
+      "type": "decimal"
+    },
+    "description": {
+      "type": "text"
+    },
+    "icon": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "Express",
+        "Same-Day",
+        "Next-Day",
+        "Scheduled",
+        "Standard"
+      ]
+    }
+  }
+}

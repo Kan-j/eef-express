@@ -1,0 +1,61 @@
+{
+  "kind": "collectionType",
+  "collectionName": "orders",
+  "info": {
+    "singularName": "order",
+    "pluralName": "orders",
+    "displayName": "Order",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "users_permissions_user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "orders"
+    },
+    "deliveryType": {
+      "type": "enumeration",
+      "enum": [
+        "Standard",
+        "Scheduled",
+        "Next-Day",
+        "Same-Day",
+        "Express"
+      ]
+    },
+    "deliveryFee": {
+      "type": "decimal"
+    },
+    "totalAmount": {
+      "type": "decimal"
+    },
+    "subTotal": {
+      "type": "decimal"
+    },
+    "scheduledDateTime": {
+      "type": "datetime"
+    },
+    "paymentMethod": {
+      "type": "string"
+    },
+    "products": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.items"
+    },
+    "orderStatus": {
+      "type": "component",
+      "repeatable": true,
+      "component": "custom.status-log"
+    },
+    "shippingAddress": {
+      "type": "component",
+      "repeatable": false,
+      "component": "address.address"
+    }
+  }
+}

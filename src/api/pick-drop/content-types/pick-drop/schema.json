@@ -1,0 +1,91 @@
+{
+  "kind": "collectionType",
+  "collectionName": "pick_drops",
+  "info": {
+    "singularName": "pick-drop",
+    "pluralName": "pick-drops",
+    "displayName": "pickDrop",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "senderName": {
+      "type": "string"
+    },
+    "senderContact": {
+      "type": "string"
+    },
+    "receiverName": {
+      "type": "string"
+    },
+    "receiverContact": {
+      "type": "string"
+    },
+    "itemDescription": {
+      "type": "text"
+    },
+    "itemWeight": {
+      "type": "decimal"
+    },
+    "images": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "preferredPickupTime": {
+      "type": "datetime"
+    },
+    "pickDropStatus": {
+      "type": "enumeration",
+      "enum": [
+        "Pending",
+        "Confirmed",
+        "Cancelled",
+        "In Transit",
+        "Completed"
+      ]
+    },
+    "assignedRider": {
+      "type": "string"
+    },
+    "users_permissions_user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "pick_drops"
+    },
+    "deliveryType": {
+      "type": "enumeration",
+      "enum": [
+        "Standard",
+        "Same-Day",
+        "Next-Day",
+        "Scheduled"
+      ]
+    },
+    "scheduledDateTime": {
+      "type": "datetime"
+    },
+    "price": {
+      "type": "decimal"
+    },
+    "pickupLocation": {
+      "type": "component",
+      "repeatable": false,
+      "component": "address.address"
+    },
+    "dropoffLocation": {
+      "type": "component",
+      "repeatable": false,
+      "component": "address.address"
+    }
+  }
+}

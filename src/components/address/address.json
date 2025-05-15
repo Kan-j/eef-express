@@ -1,0 +1,34 @@
+{
+  "collectionName": "components_address_addresses",
+  "info": {
+    "displayName": "Address",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "addressLine2": {
+      "type": "text"
+    },
+    "addressLine1": {
+      "type": "text"
+    },
+    "apartmentOrVilla": {
+      "type": "string"
+    },
+    "emirate": {
+      "type": "enumeration",
+      "enum": [
+        "Fujairah",
+        "Ras Al Khaimah",
+        "Umm Al-Quwain",
+        "Ajman",
+        "Sharjah",
+        "Dubai",
+        "Abu Dhabi"
+      ]
+    },
+    "name": {
+      "type": "string"
+    }
+  }
+}

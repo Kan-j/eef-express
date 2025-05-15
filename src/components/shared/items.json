@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_shared_items",
+  "info": {
+    "displayName": "cart-item",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "product": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::product.product"
+    },
+    "quantity": {
+      "type": "integer"
+    }
+  }
+}
