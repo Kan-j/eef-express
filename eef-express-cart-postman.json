@@ -1,0 +1,309 @@
+{
+  "info": {
+    "_postman_id": "e5a7b8c9-d0f1-4e2f-8a3b-6c7d8e9f0a1b",
+    "name": "EEF Express - Cart API",
+    "description": "A collection for testing the cart functionality of the EEF Express e-commerce API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get My Cart",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cart/me",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cart",
+            "me"
+          ]
+        },
+        "description": "Get the current user's cart with all items"
+      },
+      "response": []
+    },
+    {
+      "name": "Add Item to Cart",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"productId\": 1,\n    \"quantity\": 2\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/cart/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cart",
+            "items"
+          ]
+        },
+        "description": "Add an item to the cart with stock validation"
+      },
+      "response": []
+    },
+    {
+      "name": "Update Item Quantity",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"quantity\": 3\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/cart/items/{{productId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cart",
+            "items",
+            "{{productId}}"
+          ]
+        },
+        "description": "Update the quantity of an item in the cart with stock validation"
+      },
+      "response": []
+    },
+    {
+      "name": "Remove Item from Cart",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cart/items/{{productId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cart",
+            "items",
+            "{{productId}}"
+          ]
+        },
+        "description": "Remove an item from the cart"
+      },
+      "response": []
+    },
+    {
+      "name": "Clear Cart",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cart/clear",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cart",
+            "clear"
+          ]
+        },
+        "description": "Remove all items from the cart"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Cart Totals",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cart/totals",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cart",
+            "totals"
+          ]
+        },
+        "description": "Get the cart subtotal, item count, and total items"
+      },
+      "response": []
+    },
+    {
+      "name": "Validate Cart for Checkout",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cart/validate",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cart",
+            "validate"
+          ]
+        },
+        "description": "Validate all items in the cart before checkout"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Delivery Options",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cart/delivery-options",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cart",
+            "delivery-options"
+          ]
+        },
+        "description": "Get available delivery options and pricing"
+      },
+      "response": []
+    },
+    {
+      "name": "Create Order from Cart",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"deliveryType\": \"Standard\",\n    \"paymentMethod\": \"Credit Card\",\n    \"shippingAddress\": {\n        \"addressLine1\": \"123 Main St\",\n        \"emirate\": \"Dubai\",\n        \"name\": \"Home Address\"\n    }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/orders",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "orders"
+          ]
+        },
+        "description": "Create a new order from the cart items with validation"
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:1337",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "YOUR_JWT_TOKEN",
+      "type": "string"
+    },
+    {
+      "key": "productId",
+      "value": "1",
+      "type": "string"
+    }
+  ]
+}

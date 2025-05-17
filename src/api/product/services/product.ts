@@ -9,12 +9,8 @@ export default factories.createCoreService('api::product.product', ({ strapi }) 
    * Find all products with pagination, filters, and search
    */
   async findProducts(params: any) {
-    // Initialize filters with publishedAt not null to only get published products
-    // Using $notNull ensures we only get products that have been published
-    const filters: any = {
-      publishedAt: { $notNull: true }
-    };
-
+    // Initialize empty filters object
+    const filters: any = {};
 
 
     // Price range filter
@@ -63,75 +59,53 @@ export default factories.createCoreService('api::product.product', ({ strapi }) 
    * Get product details by ID
    */
   async getProductDetails(productId: number) {
-    try {
-      console.log(`Fetching product details for ID: ${productId}`);
+    // Simply get the product by ID without checking publishedAt
+    // This allows us to retrieve both published and unpublished products
+    const product = await strapi.entityService.findOne('api::product.product', productId, {
+      populate: ['images', 'category', 'reviews'],
+    });
 
-      const product = await strapi.entityService.findOne('api::product.product', productId, {
-        populate: ['images', 'category', 'reviews'],
-      });
-
-      console.log('Product found:', product ? 'Yes' : 'No');
-      if (product) {
-        console.log('Product published:', product.publishedAt ? 'Yes' : 'No');
-
-        // Log the structure of the product object to understand its format
-        console.log('Product structure:', JSON.stringify({
-          id: product.id,
-          attributes: {
-            name: product.name,
-            publishedAt: product.publishedAt,
-            // Add other relevant fields
-          }
-        }, null, 2));
-      }
-
-      if (!product) {
-        throw new Error(`Product not found with ID: ${productId}`);
-      }
-
-      // Log the actual value of publishedAt for debugging
-      console.log('publishedAt value:', product.publishedAt);
-
-      // Check if publishedAt exists and is not null
-      // In Strapi, publishedAt could be a Date object, a string, or null
-      if (product.publishedAt === null || product.publishedAt === undefined) {
-        throw new Error(`Product with ID: ${productId} exists but is not published`);
-      }
-
-      // If we get here, the product is published
-
-      return product;
-    } catch (error) {
-      console.error('Error in getProductDetails:', error.message);
-      throw error;
+    if (!product) {
+      throw new Error(`Product not found with ID: ${productId}`);
     }
+
+    return product;
   },
 
   /**
    * Get related products based on category
    */
   async getRelatedProducts(productId: number, limit = 4) {
-    // Get the product to find its category
-    const product: any = await strapi.entityService.findOne('api::product.product', productId, {
-      populate: ['category']
-    });
+    try {
+      // Get the product to find its category
+      const product: any = await strapi.entityService.findOne('api::product.product', productId, {
+        populate: ['category']
+      });
 
-    if (!product || !product.category) {
+      if (!product) {
+        return [];
+      }
+
+      // Check if the product has a category
+      if (!product.category) {
+        return [];
+      }
+
+      // Find products in the same category, excluding the current product
+      const relatedProducts = await strapi.entityService.findMany('api::product.product', {
+        filters: {
+          id: { $ne: productId },
+          category: { id: product.category.id }
+        },
+        populate: ['images', 'category'],
+        limit
+      });
+
+      return relatedProducts;
+    } catch (error) {
+      console.error(`Error getting related products for product ${productId}:`, error.message);
       return [];
     }
-
-    // Find products in the same category, excluding the current product
-    const relatedProducts = await strapi.entityService.findMany('api::product.product', {
-      filters: {
-        id: { $ne: productId },
-        category: { id: product.category.id },
-        publishedAt: { $notNull: true }
-      },
-      populate: ['images', 'category'],
-      limit
-    });
-
-    return relatedProducts;
   },
 
   /**
@@ -140,8 +114,7 @@ export default factories.createCoreService('api::product.product', ({ strapi }) 
   async getTopRatedProducts(limit = 5) {
     const products = await strapi.entityService.findMany('api::product.product', {
       filters: {
-        ratings: { $gte: 4 }, // Products with ratings of 4 or higher
-        publishedAt: { $notNull: true }
+        ratings: { $gte: 4 } // Products with ratings of 4 or higher
       },
       populate: ['images', 'category'],
       sort: 'ratings:desc',
@@ -157,8 +130,7 @@ export default factories.createCoreService('api::product.product', ({ strapi }) 
   async getNewestProducts(limit = 5) {
     const products = await strapi.entityService.findMany('api::product.product', {
       filters: {
-        stock: { $gt: 0 }, // Only in-stock products
-        publishedAt: { $notNull: true }
+        stock: { $gt: 0 } // Only in-stock products
       },
       populate: ['images', 'category'],
       sort: 'createdAt:desc',

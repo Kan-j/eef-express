@@ -40,15 +40,31 @@ export default factories.createCoreController('api::cart.cart', ({ strapi }) => 
         return ctx.badRequest('Product ID is required');
       }
 
-      const cart = await strapi.service('api::cart.cart').addItem(
-        user.id,
-        parseInt(productId),
-        parseInt(quantity)
-      );
+      try {
+        const cart = await strapi.service('api::cart.cart').addItem(
+          user.id,
+          parseInt(productId),
+          parseInt(quantity)
+        );
 
-      return this.transformResponse(cart);
+        return this.transformResponse(cart);
+      } catch (serviceError) {
+        // Handle specific errors from the service
+        if (serviceError.message.includes('not found')) {
+          return ctx.notFound(serviceError.message);
+        } else if (serviceError.message.includes('not available')) {
+          return ctx.badRequest(serviceError.message);
+        } else if (serviceError.message.includes('stock') || serviceError.message.includes('quantity')) {
+          return ctx.badRequest(serviceError.message);
+        } else {
+          // Log the error for debugging
+          console.error('Error in addItem service:', serviceError);
+          throw serviceError;
+        }
+      }
     } catch (error) {
-      ctx.throw(500, error);
+      console.error('Unhandled error in addItem controller:', error);
+      ctx.throw(500, 'An error occurred while adding the item to cart');
     }
   },
 
@@ -68,14 +84,20 @@ export default factories.createCoreController('api::cart.cart', ({ strapi }) => 
         return ctx.badRequest('Product ID is required');
       }
 
-      const cart = await strapi.service('api::cart.cart').removeItem(
-        user.id,
-        parseInt(productId)
-      );
+      try {
+        const cart = await strapi.service('api::cart.cart').removeItem(
+          user.id,
+          parseInt(productId)
+        );
 
-      return this.transformResponse(cart);
+        return this.transformResponse(cart);
+      } catch (serviceError) {
+        console.error('Error in removeItem service:', serviceError);
+        ctx.throw(500, 'An error occurred while removing the item from cart');
+      }
     } catch (error) {
-      ctx.throw(500, error);
+      console.error('Unhandled error in removeItem controller:', error);
+      ctx.throw(500, 'An error occurred while processing your request');
     }
   },
 
@@ -100,15 +122,29 @@ export default factories.createCoreController('api::cart.cart', ({ strapi }) => 
         return ctx.badRequest('Quantity is required');
       }
 
-      const cart = await strapi.service('api::cart.cart').updateItemQuantity(
-        user.id,
-        parseInt(productId),
-        parseInt(quantity)
-      );
+      try {
+        const cart = await strapi.service('api::cart.cart').updateItemQuantity(
+          user.id,
+          parseInt(productId),
+          parseInt(quantity)
+        );
 
-      return this.transformResponse(cart);
+        return this.transformResponse(cart);
+      } catch (serviceError) {
+        // Handle specific errors from the service
+        if (serviceError.message.includes('not found')) {
+          return ctx.notFound(serviceError.message);
+        } else if (serviceError.message.includes('stock') || serviceError.message.includes('quantity')) {
+          return ctx.badRequest(serviceError.message);
+        } else {
+          // Log the error for debugging
+          console.error('Error in updateItemQuantity controller:', serviceError);
+          throw serviceError;
+        }
+      }
     } catch (error) {
-      ctx.throw(500, error);
+      console.error('Unhandled error in updateItemQuantity controller:', error);
+      ctx.throw(500, 'An error occurred while updating the cart item');
     }
   },
 
@@ -145,6 +181,41 @@ export default factories.createCoreController('api::cart.cart', ({ strapi }) => 
       const totals = await strapi.service('api::cart.cart').getCartTotals(user.id);
 
       return this.transformResponse(totals);
+    } catch (error) {
+      ctx.throw(500, error);
+    }
+  },
+
+  /**
+   * Validate cart for checkout
+   */
+  async validateCart(ctx) {
+    try {
+      const { user } = ctx.state;
+
+      if (!user) {
+        return ctx.unauthorized('You must be logged in');
+      }
+
+      const validationResults = await strapi.service('api::cart.cart').validateCartForCheckout(user.id);
+
+      return this.transformResponse(validationResults);
+    } catch (error) {
+      if (error.message === 'Cart is empty') {
+        return ctx.badRequest(error.message);
+      }
+      ctx.throw(500, error);
+    }
+  },
+
+  /**
+   * Get delivery options
+   */
+  async getDeliveryOptions(ctx) {
+    try {
+      const deliveryOptions = await strapi.service('api::cart.cart').getDeliveryOptions();
+
+      return this.transformResponse(deliveryOptions);
     } catch (error) {
       ctx.throw(500, error);
     }

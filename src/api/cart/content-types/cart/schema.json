@@ -21,7 +21,8 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "plugin::users-permissions.user",
-      "inversedBy": "cart"
+      "inversedBy": "cart",
+      "unique": true
     }
   }
 }

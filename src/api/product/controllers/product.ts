@@ -7,8 +7,6 @@ import { factories } from '@strapi/strapi';
 export default factories.createCoreController('api::product.product', ({ strapi }) => ({
   /**
    * Find all products with pagination, filters, and search
-   *
-   * Only returns published products (where publishedAt is not null) to avoid duplicates.
    */
   async find(ctx) {
     try {
@@ -27,28 +25,22 @@ export default factories.createCoreController('api::product.product', ({ strapi 
   async findOne(ctx) {
     try {
       const { id } = ctx.params;
-      console.log(`Product details requested for ID: ${id}`);
 
       if (!id) {
-        console.log('Bad request: Product ID is required');
         return ctx.badRequest('Product ID is required');
       }
 
       // Parse the ID as an integer
       const productId = parseInt(id);
       if (isNaN(productId)) {
-        console.log(`Bad request: Invalid product ID format: ${id}`);
         return ctx.badRequest('Invalid product ID format');
       }
 
       const data = await strapi.service('api::product.product').getProductDetails(productId);
-      console.log('Product details retrieved successfully');
 
       return this.transformResponse(data);
     } catch (error) {
-      console.error('Error in findOne controller:', error.message);
-
-      if (error.message.includes('not found') || error.message.includes('not published')) {
+      if (error.message.includes('not found')) {
         return ctx.notFound(error.message);
       }
 

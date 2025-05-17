@@ -2,10 +2,6 @@
  * cart router
  */
 
-import { factories } from '@strapi/strapi';
-
-const defaultRouter = factories.createCoreRouter('api::cart.cart');
-
 export default {
   routes: [
     // Custom routes
@@ -53,6 +49,22 @@ export default {
       method: 'GET',
       path: '/cart/totals',
       handler: 'api::cart.cart.getCartTotals',
+      config: {
+        policies: [],
+      },
+    },
+    {
+      method: 'GET',
+      path: '/cart/validate',
+      handler: 'api::cart.cart.validateCart',
+      config: {
+        policies: [],
+      },
+    },
+    {
+      method: 'GET',
+      path: '/cart/delivery-options',
+      handler: 'api::cart.cart.getDeliveryOptions',
       config: {
         policies: [],
       },

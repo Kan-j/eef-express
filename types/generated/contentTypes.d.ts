@@ -382,7 +382,7 @@ export interface ApiCartCart extends Struct.CollectionTypeSchema {
     singularName: 'cart';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     createdAt: Schema.Attribute.DateTime;
@@ -399,7 +399,8 @@ export interface ApiCartCart extends Struct.CollectionTypeSchema {
     users_permissions_user: Schema.Attribute.Relation<
       'oneToOne',
       'plugin::users-permissions.user'
-    >;
+    > &
+      Schema.Attribute.Unique;
   };
 }
 
@@ -411,7 +412,7 @@ export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
     singularName: 'category';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     createdAt: Schema.Attribute.DateTime;
@@ -444,7 +445,7 @@ export interface ApiDeliveryPricingDeliveryPricing
     singularName: 'delivery-pricing';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     amount: Schema.Attribute.Decimal;
@@ -452,7 +453,6 @@ export interface ApiDeliveryPricingDeliveryPricing
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     description: Schema.Attribute.Text;
-    icon: Schema.Attribute.String;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -460,8 +460,6 @@ export interface ApiDeliveryPricingDeliveryPricing
     > &
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
-    subtitle: Schema.Attribute.String;
-    title: Schema.Attribute.String;
     type: Schema.Attribute.Enumeration<
       ['Express', 'Same-Day', 'Next-Day', 'Scheduled', 'Standard']
     >;
@@ -480,7 +478,7 @@ export interface ApiNotificationNotification
     singularName: 'notification';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     createdAt: Schema.Attribute.DateTime;
@@ -515,7 +513,7 @@ export interface ApiOrderOrder extends Struct.CollectionTypeSchema {
     singularName: 'order';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     createdAt: Schema.Attribute.DateTime;
@@ -555,7 +553,7 @@ export interface ApiPickDropPickDrop extends Struct.CollectionTypeSchema {
     singularName: 'pick-drop';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     assignedRider: Schema.Attribute.String;
@@ -609,7 +607,7 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
     singularName: 'product';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     category: Schema.Attribute.Relation<'manyToOne', 'api::category.category'>;
@@ -648,7 +646,7 @@ export interface ApiReviewReview extends Struct.CollectionTypeSchema {
     singularName: 'review';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     comment: Schema.Attribute.Text;
@@ -681,7 +679,7 @@ export interface ApiWishlistWishlist extends Struct.CollectionTypeSchema {
     singularName: 'wishlist';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     createdAt: Schema.Attribute.DateTime;
@@ -1160,9 +1158,9 @@ export interface PluginUsersPermissionsUser
   };
   options: {
     draftAndPublish: false;
-    timestamps: true;
   };
   attributes: {
+    addresses: Schema.Attribute.Component<'address.address', true>;
     blocked: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     cart: Schema.Attribute.Relation<'oneToOne', 'api::cart.cart'>;
     confirmationToken: Schema.Attribute.String & Schema.Attribute.Private;

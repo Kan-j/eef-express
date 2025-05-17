@@ -17,15 +17,6 @@
     "description": {
       "type": "text"
     },
-    "icon": {
-      "type": "string"
-    },
-    "title": {
-      "type": "string"
-    },
-    "subtitle": {
-      "type": "string"
-    },
     "type": {
       "type": "enumeration",
       "enum": [

@@ -13,7 +13,7 @@ This document provides detailed information about all product-related endpoints 
 
 ## 1. Get All Products with Pagination, Filters, and Search
 
-This endpoint allows you to retrieve a paginated list of products with various filtering options. It only returns published products (where publishedAt is not null) to avoid duplicates.
+This endpoint allows you to retrieve a paginated list of products with various filtering options.
 
 ### Endpoint
 
@@ -425,14 +425,6 @@ All endpoints return responses in Strapi's standard format:
   }
 }
 ```
-
-### Published Products
-
-All product endpoints only return published products (where `publishedAt` is not null). This ensures that:
-
-- Only finalized products are shown to users
-- Draft products remain hidden until ready
-- Duplicate entries are avoided
 
 ### Filtering and Searching
 

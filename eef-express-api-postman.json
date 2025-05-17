@@ -7,8 +7,8 @@
   },
   "item": [
     {
-      "name": "Authentication",
-      "description": "Endpoints for authentication",
+      "name": "Authentication & User Management",
+      "description": "Endpoints for authentication and user management",
       "item": [
         {
           "name": "Login",
@@ -65,7 +65,183 @@
                 "register"
               ]
             },
-            "description": "Register a new user"
+            "description": "Register a new user (basic information only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "me"
+              ]
+            },
+            "description": "Get the profile of the currently authenticated user"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Current User Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"firstName\": \"Updated\",\n    \"lastName\": \"Name\",\n    \"phoneNumber\": \"+9876543210\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "me"
+              ]
+            },
+            "description": "Update the profile of the currently authenticated user"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Address",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"address\": {\n        \"addressLine1\": \"123 Main St\",\n        \"addressLine2\": \"Apt 456\",\n        \"city\": \"New York\",\n        \"state\": \"NY\",\n        \"postalCode\": \"10001\",\n        \"country\": \"USA\",\n        \"isDefault\": true,\n        \"label\": \"Home\",\n        \"phoneNumber\": \"+1234567890\"\n    }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/addresses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "addresses"
+              ]
+            },
+            "description": "Add a new address to the user's profile"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Addresses",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/addresses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "addresses"
+              ]
+            },
+            "description": "Get all addresses for the current user"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Address",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"address\": {\n        \"addressLine1\": \"456 Broadway\",\n        \"city\": \"New York\",\n        \"isDefault\": true\n    }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/addresses/{{addressId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "addresses",
+                "{{addressId}}"
+              ]
+            },
+            "description": "Update an existing address"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Address",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/addresses/{{addressId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "addresses",
+                "{{addressId}}"
+              ]
+            },
+            "description": "Delete an address"
           },
           "response": []
         }
@@ -920,6 +1096,12 @@
       "value": "1",
       "type": "string",
       "description": "ID of a shipping address for testing"
+    },
+    {
+      "key": "addressId",
+      "value": "1",
+      "type": "string",
+      "description": "ID of a user address for testing"
     }
   ]
 }

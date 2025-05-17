@@ -17,6 +17,13 @@ export default factories.createCoreService('api::order.order', ({ strapi }) => (
       throw new Error('Cart is empty');
     }
 
+    // Validate cart items before creating order
+    const validationResults = await cartService.validateCartForCheckout(userId);
+
+    if (!validationResults.valid) {
+      throw new Error(validationResults.message);
+    }
+
     // Calculate totals
     const cartTotals = await cartService.getCartTotals(userId);
     const subtotal = cartTotals.subtotal;
