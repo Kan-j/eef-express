@@ -1,0 +1,147 @@
+{
+  "info": {
+    "_postman_id": "f8a7b6c5-d4e3-4f2f-8a1b-6c7d8e9f0a1b",
+    "name": "EEF Express - Categories API",
+    "description": "A collection for testing the category endpoints of the EEF Express e-commerce API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get All Categories",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/categories/all",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "categories",
+            "all"
+          ]
+        },
+        "description": "Get all categories sorted by displayOrder and name"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Categories With Product Counts",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/categories/with-counts",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "categories",
+            "with-counts"
+          ]
+        },
+        "description": "Get all categories with the count of products in each category"
+      },
+      "response": []
+    },
+    {
+      "name": "Get All Categories With Products",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/categories/all?withProducts=true",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "categories",
+            "all"
+          ],
+          "query": [
+            {
+              "key": "withProducts",
+              "value": "true"
+            }
+          ]
+        },
+        "description": "Get all categories with their products populated"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Categories (Default)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/categories",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "categories"
+          ]
+        },
+        "description": "Get categories using the default Strapi endpoint"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Category By ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/categories/{{categoryId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "categories",
+            "{{categoryId}}"
+          ]
+        },
+        "description": "Get a specific category by ID"
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:1337",
+      "type": "string"
+    },
+    {
+      "key": "categoryId",
+      "value": "1",
+      "type": "string"
+    }
+  ]
+}
