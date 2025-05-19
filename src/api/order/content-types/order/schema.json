@@ -40,7 +40,31 @@
       "type": "datetime"
     },
     "paymentMethod": {
-      "type": "string"
+      "type": "enumeration",
+      "enum": [
+        "credit_card",
+        "paypal",
+        "apple_pay",
+        "google_pay",
+        "cash_on_delivery"
+      ]
+    },
+    "paymentStatus": {
+      "type": "enumeration",
+      "enum": [
+        "pending",
+        "processing",
+        "completed",
+        "failed",
+        "refunded"
+      ],
+      "default": "pending"
+    },
+    "payment": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::payment.payment",
+      "mappedBy": "order"
     },
     "products": {
       "type": "component",

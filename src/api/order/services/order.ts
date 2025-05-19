@@ -52,7 +52,7 @@ export default factories.createCoreService('api::order.order', ({ strapi }) => (
       locationNote: 'Order received',
     };
 
-    // Create the order
+    // Create the order with payment status
     const order = await strapi.entityService.create('api::order.order', {
       data: {
         users_permissions_user: userId,
@@ -66,6 +66,7 @@ export default factories.createCoreService('api::order.order', ({ strapi }) => (
         totalAmount,
         scheduledDateTime: orderData.scheduledDateTime,
         paymentMethod: orderData.paymentMethod,
+        paymentStatus: orderData.paymentStatus || 'pending',
         shippingAddress: orderData.shippingAddress,
         orderStatus: [initialStatus],
         publishedAt: new Date(),

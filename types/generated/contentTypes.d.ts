@@ -527,13 +527,72 @@ export interface ApiOrderOrder extends Struct.CollectionTypeSchema {
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::order.order'> &
       Schema.Attribute.Private;
     orderStatus: Schema.Attribute.Component<'custom.status-log', true>;
-    paymentMethod: Schema.Attribute.String;
+    payment: Schema.Attribute.Relation<'oneToOne', 'api::payment.payment'>;
+    paymentMethod: Schema.Attribute.Enumeration<
+      ['credit_card', 'paypal', 'apple_pay', 'google_pay', 'cash_on_delivery']
+    >;
+    paymentStatus: Schema.Attribute.Enumeration<
+      ['pending', 'processing', 'completed', 'failed', 'refunded']
+    > &
+      Schema.Attribute.DefaultTo<'pending'>;
     products: Schema.Attribute.Component<'shared.items', true>;
     publishedAt: Schema.Attribute.DateTime;
     scheduledDateTime: Schema.Attribute.DateTime;
     shippingAddress: Schema.Attribute.Component<'address.address', false>;
     subTotal: Schema.Attribute.Decimal;
     totalAmount: Schema.Attribute.Decimal;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    users_permissions_user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
+export interface ApiPaymentPayment extends Struct.CollectionTypeSchema {
+  collectionName: 'payments';
+  info: {
+    description: 'Track payment information for orders';
+    displayName: 'Payment';
+    pluralName: 'payments';
+    singularName: 'payment';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    amount: Schema.Attribute.Decimal & Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::payment.payment'
+    > &
+      Schema.Attribute.Private;
+    order: Schema.Attribute.Relation<'oneToOne', 'api::order.order'>;
+    paymentDetails: Schema.Attribute.JSON;
+    paymentMethod: Schema.Attribute.Enumeration<
+      [
+        'credit_card',
+        'paypal',
+        'apple_pay',
+        'google_pay',
+        'cash_on_delivery',
+        'bank_transfer',
+      ]
+    > &
+      Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    status: Schema.Attribute.Enumeration<
+      ['pending', 'processing', 'completed', 'failed', 'refunded']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'pending'>;
+    transactionId: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1189,6 +1248,7 @@ export interface PluginUsersPermissionsUser
       Schema.Attribute.SetMinMaxLength<{
         minLength: 6;
       }>;
+    payments: Schema.Attribute.Relation<'oneToMany', 'api::payment.payment'>;
     pick_drops: Schema.Attribute.Relation<
       'oneToMany',
       'api::pick-drop.pick-drop'
@@ -1229,6 +1289,7 @@ declare module '@strapi/strapi' {
       'api::delivery-pricing.delivery-pricing': ApiDeliveryPricingDeliveryPricing;
       'api::notification.notification': ApiNotificationNotification;
       'api::order.order': ApiOrderOrder;
+      'api::payment.payment': ApiPaymentPayment;
       'api::pick-drop.pick-drop': ApiPickDropPickDrop;
       'api::product.product': ApiProductProduct;
       'api::review.review': ApiReviewReview;

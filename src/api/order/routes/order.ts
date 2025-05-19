@@ -26,6 +26,14 @@ export default {
       },
     },
     {
+      method: 'PUT',
+      path: '/orders/:id/payment-status',
+      handler: 'api::order.order.updatePaymentStatus',
+      config: {
+        policies: [],
+      },
+    },
+    {
       method: 'GET',
       path: '/orders/me',
       handler: 'api::order.order.myOrders',

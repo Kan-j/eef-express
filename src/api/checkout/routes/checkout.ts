@@ -4,6 +4,7 @@
 
 export default {
   routes: [
+    // Process checkout
     {
       method: 'POST',
       path: '/checkout',
@@ -12,18 +13,21 @@ export default {
         policies: [],
       },
     },
-    {
-      method: 'GET',
-      path: '/checkout/coupon/:code',
-      handler: 'api::checkout.checkout.validateCoupon',
-      config: {
-        policies: [],
-      },
-    },
+
+    // Get order summary
     {
       method: 'GET',
       path: '/checkout/summary',
       handler: 'api::checkout.checkout.orderSummary',
+      config: {
+        policies: [],
+      },
+    },
+    // Get available payment methods
+    {
+      method: 'GET',
+      path: '/checkout/payment-methods',
+      handler: 'api::checkout.checkout.paymentMethods',
       config: {
         policies: [],
       },

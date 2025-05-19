@@ -105,6 +105,12 @@
       "type": "component",
       "repeatable": true,
       "component": "address.address"
+    },
+    "payments": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::payment.payment",
+      "mappedBy": "users_permissions_user"
     }
   }
 }
