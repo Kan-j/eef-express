@@ -1,0 +1,627 @@
+{
+  "info": {
+    "_postman_id": "e5a7b8c9-d0f1-4e2a-b3c4-5a6b7c8d9e0f",
+    "name": "EEF Express Complete Checkout Flow with Tax",
+    "description": "Complete checkout flow with tax calculation, Stripe integration, and shipping address management",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"identifier\": \"user@example.com\",\n    \"password\": \"Password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/local",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "local"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Tax Management",
+      "item": [
+        {
+          "name": "Create Default Taxes (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminJwt}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tax/create-defaults",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tax", "create-defaults"]
+            }
+          }
+        },
+        {
+          "name": "Get Active Taxes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tax/active",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tax", "active"]
+            }
+          }
+        },
+        {
+          "name": "Get Current Active Tax",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tax/current",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tax", "current"]
+            }
+          }
+        },
+        {
+          "name": "Calculate Tax",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tax/calculate?amount=100",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tax", "calculate"],
+              "query": [
+                {
+                  "key": "amount",
+                  "value": "100"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Cart Management",
+      "item": [
+        {
+          "name": "Add Product to Cart",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"productId\": 1,\n    \"quantity\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cart/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cart", "products"]
+            }
+          }
+        },
+        {
+          "name": "Get My Cart",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cart/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cart", "me"]
+            }
+          }
+        },
+        {
+          "name": "Update Cart Item Quantity",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"quantity\": 3\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cart/products/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cart", "products", "1"]
+            }
+          }
+        },
+        {
+          "name": "Remove Item from Cart",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cart/products/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cart", "products", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Delivery Types",
+      "item": [
+        {
+          "name": "Get All Delivery Types",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/delivery-types",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "delivery-types"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Shipping Address Management",
+      "item": [
+        {
+          "name": "Get My Addresses",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipping-addresses/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "shipping-addresses", "me"]
+            }
+          }
+        },
+        {
+          "name": "Add New Address",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"John Doe\",\n    \"addressLine1\": \"123 Main Street\",\n    \"addressLine2\": \"Apartment 4B\",\n    \"apartmentOrVilla\": \"Apartment\",\n    \"emirate\": \"Dubai\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/shipping-addresses",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "shipping-addresses"]
+            }
+          }
+        },
+        {
+          "name": "Update Address",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"John Doe Updated\",\n    \"addressLine1\": \"456 Updated Street\",\n    \"addressLine2\": \"Suite 5C\",\n    \"apartmentOrVilla\": \"Villa\",\n    \"emirate\": \"Abu Dhabi\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/shipping-addresses/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "shipping-addresses", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Address",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipping-addresses/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "shipping-addresses", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Checkout Process",
+      "item": [
+        {
+          "name": "Get Order Summary with Tax",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/checkout/summary?deliveryType=Express",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "checkout", "summary"],
+              "query": [
+                {
+                  "key": "deliveryType",
+                  "value": "Express"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Payment Methods",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/checkout/payment-methods",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "checkout", "payment-methods"]
+            }
+          }
+        },
+        {
+          "name": "Create Payment Intent (Stripe)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"amount\": 87.98\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/checkout/create-payment-intent",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "checkout", "create-payment-intent"]
+            }
+          }
+        },
+        {
+          "name": "Process Checkout - Card Payment (Stripe)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"deliveryType\": \"Express\",\n    \"paymentMethod\": \"card\",\n    \"paymentDetails\": {},\n    \"shippingAddress\": {\n        \"name\": \"John Doe\",\n        \"addressLine1\": \"123 Main Street\",\n        \"addressLine2\": \"Apartment 4B\",\n        \"apartmentOrVilla\": \"Apartment\",\n        \"emirate\": \"Dubai\"\n    },\n    \"scheduledDateTime\": null,\n    \"customerEmail\": \"user@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/checkout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "checkout"]
+            }
+          }
+        },
+        {
+          "name": "Process Checkout - Cash on Delivery",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"deliveryType\": \"Standard\",\n    \"paymentMethod\": \"cash_on_delivery\",\n    \"paymentDetails\": {},\n    \"shippingAddress\": {\n        \"name\": \"John Doe\",\n        \"addressLine1\": \"123 Main Street\",\n        \"addressLine2\": \"Apartment 4B\",\n        \"apartmentOrVilla\": \"Apartment\",\n        \"emirate\": \"Dubai\"\n    },\n    \"scheduledDateTime\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/checkout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "checkout"]
+            }
+          }
+        },
+        {
+          "name": "Process Checkout - Scheduled Delivery",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"deliveryType\": \"Scheduled\",\n    \"paymentMethod\": \"cash_on_delivery\",\n    \"paymentDetails\": {},\n    \"shippingAddress\": {\n        \"name\": \"John Doe\",\n        \"addressLine1\": \"123 Main Street\",\n        \"addressLine2\": \"Apartment 4B\",\n        \"apartmentOrVilla\": \"Apartment\",\n        \"emirate\": \"Dubai\"\n    },\n    \"scheduledDateTime\": \"2024-01-15T14:30:00.000Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/checkout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "checkout"]
+            }
+          }
+        },
+        {
+          "name": "Pay for Existing Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"customerEmail\": \"user@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/checkout/pay/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "checkout", "pay", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Verification",
+      "item": [
+        {
+          "name": "Verify Cart Cleared",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cart/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cart", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Order Management",
+      "item": [
+        {
+          "name": "Get My Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders", "me"]
+            }
+          }
+        },
+        {
+          "name": "Get Order Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Payment Management",
+      "item": [
+        {
+          "name": "Get My Payments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/payments/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments", "me"]
+            }
+          }
+        },
+        {
+          "name": "Get Payment Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/payments/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments", "1"]
+            }
+          }
+        },
+        {
+          "name": "Update Payment Status (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminJwt}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"status\": \"completed\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/payments/1/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments", "1", "status"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:1337",
+      "type": "string"
+    },
+    {
+      "key": "jwt",
+      "value": "your_jwt_token_here",
+      "type": "string"
+    },
+    {
+      "key": "adminJwt",
+      "value": "admin_jwt_token_here",
+      "type": "string"
+    }
+  ]
+}

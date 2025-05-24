@@ -13,7 +13,6 @@ export default {
         policies: [],
       },
     },
-
     // Get order summary
     {
       method: 'GET',
@@ -28,6 +27,24 @@ export default {
       method: 'GET',
       path: '/checkout/payment-methods',
       handler: 'api::checkout.checkout.paymentMethods',
+      config: {
+        policies: [],
+      },
+    },
+    // Create Stripe Payment Intent
+    {
+      method: 'POST',
+      path: '/checkout/create-payment-intent',
+      handler: 'api::checkout.checkout.createPaymentIntent',
+      config: {
+        policies: [],
+      },
+    },
+    // Pay for existing order
+    {
+      method: 'POST',
+      path: '/checkout/pay/:orderId',
+      handler: 'api::checkout.checkout.payForOrder',
       config: {
         policies: [],
       },

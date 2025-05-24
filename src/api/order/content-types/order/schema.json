@@ -42,7 +42,7 @@
     "paymentMethod": {
       "type": "enumeration",
       "enum": [
-        "credit_card",
+        "card",
         "paypal",
         "apple_pay",
         "google_pay",
@@ -80,6 +80,9 @@
       "type": "component",
       "repeatable": false,
       "component": "address.address"
+    },
+    "stripeId": {
+      "type": "string"
     }
   }
 }

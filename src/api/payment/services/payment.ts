@@ -8,7 +8,7 @@ import { factories } from '@strapi/strapi';
 type PaymentStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'refunded';
 
 // Define payment method type
-type PaymentMethod = 'credit_card' | 'paypal' | 'apple_pay' | 'google_pay' | 'cash_on_delivery' | 'bank_transfer';
+type PaymentMethod = 'card' | 'paypal' | 'apple_pay' | 'google_pay' | 'cash_on_delivery' | 'bank_transfer';
 
 // Define payment data interface
 interface PaymentData {
@@ -165,6 +165,53 @@ export default factories.createCoreService('api::payment.payment', ({ strapi }) 
       return { results, pagination };
     } catch (error) {
       console.error('Error getting user payments:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update payment by transaction ID (for webhooks)
+   */
+  async updatePaymentByTransactionId(transactionId: string, updateData: any) {
+    try {
+      // Find payment by transaction ID
+      const payments = await strapi.entityService.findMany('api::payment.payment', {
+        filters: {
+          transactionId: transactionId,
+        },
+        populate: ['order'],
+      });
+
+      if (!payments || payments.length === 0) {
+        console.error(`Payment not found for transaction ID: ${transactionId}`);
+        return null;
+      }
+
+      const payment = payments[0];
+
+      // Update payment
+      const updatedPayment = await strapi.entityService.update('api::payment.payment', payment.id, {
+        data: {
+          ...updateData,
+          publishedAt: new Date(),
+        },
+        populate: ['order'],
+      });
+
+      // Also update the order's payment status if provided
+      if (updateData.status && (payment as any).order) {
+        await strapi.entityService.update('api::order.order', (payment as any).order.id, {
+          data: {
+            paymentStatus: updateData.status,
+            publishedAt: new Date(),
+          },
+        });
+      }
+
+      console.log(`Payment updated for transaction ID: ${transactionId}`);
+      return updatedPayment;
+    } catch (error) {
+      console.error('Error updating payment by transaction ID:', error);
       throw error;
     }
   },

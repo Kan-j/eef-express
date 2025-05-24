@@ -407,6 +407,7 @@ export interface ApiCartCart extends Struct.CollectionTypeSchema {
 export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
   collectionName: 'categories';
   info: {
+    description: '';
     displayName: 'Category';
     pluralName: 'categories';
     singularName: 'category';
@@ -419,6 +420,7 @@ export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     displayOrder: Schema.Attribute.Integer;
+    image: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -529,7 +531,7 @@ export interface ApiOrderOrder extends Struct.CollectionTypeSchema {
     orderStatus: Schema.Attribute.Component<'custom.status-log', true>;
     payment: Schema.Attribute.Relation<'oneToOne', 'api::payment.payment'>;
     paymentMethod: Schema.Attribute.Enumeration<
-      ['credit_card', 'paypal', 'apple_pay', 'google_pay', 'cash_on_delivery']
+      ['card', 'paypal', 'apple_pay', 'google_pay', 'cash_on_delivery']
     >;
     paymentStatus: Schema.Attribute.Enumeration<
       ['pending', 'processing', 'completed', 'failed', 'refunded']
@@ -539,6 +541,7 @@ export interface ApiOrderOrder extends Struct.CollectionTypeSchema {
     publishedAt: Schema.Attribute.DateTime;
     scheduledDateTime: Schema.Attribute.DateTime;
     shippingAddress: Schema.Attribute.Component<'address.address', false>;
+    stripeId: Schema.Attribute.String;
     subTotal: Schema.Attribute.Decimal;
     totalAmount: Schema.Attribute.Decimal;
     updatedAt: Schema.Attribute.DateTime;
@@ -577,7 +580,7 @@ export interface ApiPaymentPayment extends Struct.CollectionTypeSchema {
     paymentDetails: Schema.Attribute.JSON;
     paymentMethod: Schema.Attribute.Enumeration<
       [
-        'credit_card',
+        'card',
         'paypal',
         'apple_pay',
         'google_pay',
@@ -727,6 +730,69 @@ export interface ApiReviewReview extends Struct.CollectionTypeSchema {
       'manyToOne',
       'plugin::users-permissions.user'
     >;
+  };
+}
+
+export interface ApiTaxTax extends Struct.CollectionTypeSchema {
+  collectionName: 'taxes';
+  info: {
+    description: 'Tax rates and rules for different locations and scenarios';
+    displayName: 'Tax';
+    pluralName: 'taxes';
+    singularName: 'tax';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    applicableFrom: Schema.Attribute.Date & Schema.Attribute.Required;
+    applicableTo: Schema.Attribute.Date;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    isActive: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<true>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::tax.tax'> &
+      Schema.Attribute.Private;
+    maximumAmount: Schema.Attribute.Decimal &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    minimumAmount: Schema.Attribute.Decimal &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<0>;
+    name: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    publishedAt: Schema.Attribute.DateTime;
+    rate: Schema.Attribute.Decimal &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 100;
+          min: 0;
+        },
+        number
+      >;
+    type: Schema.Attribute.Enumeration<
+      ['VAT', 'GST', 'Sales Tax', 'Service Tax', 'Import Duty']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'VAT'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
   };
 }
 
@@ -1293,6 +1359,7 @@ declare module '@strapi/strapi' {
       'api::pick-drop.pick-drop': ApiPickDropPickDrop;
       'api::product.product': ApiProductProduct;
       'api::review.review': ApiReviewReview;
+      'api::tax.tax': ApiTaxTax;
       'api::wishlist.wishlist': ApiWishlistWishlist;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;

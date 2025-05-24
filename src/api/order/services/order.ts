@@ -74,8 +74,8 @@ export default factories.createCoreService('api::order.order', ({ strapi }) => (
       populate: ['products', 'products.product', 'shippingAddress', 'orderStatus'],
     });
 
-    // Clear the cart after order is created
-    await cartService.clearCart(userId);
+    // Note: Cart clearing is handled in the checkout service after successful payment
+    // This ensures the cart is only cleared after the entire checkout process is complete
 
     return order;
   },
@@ -158,5 +158,25 @@ export default factories.createCoreService('api::order.order', ({ strapi }) => (
     }
 
     return orders[0];
+  },
+
+  /**
+   * Update order payment status
+   */
+  async updateOrderPaymentStatus(orderId: number, paymentStatus: 'pending' | 'processing' | 'completed' | 'failed' | 'refunded') {
+    try {
+      const order = await strapi.entityService.update('api::order.order', orderId, {
+        data: {
+          paymentStatus,
+          publishedAt: new Date(),
+        },
+      });
+
+      console.log(`Order ${orderId} payment status updated to: ${paymentStatus}`);
+      return order;
+    } catch (error) {
+      console.error('Error updating order payment status:', error);
+      throw error;
+    }
   },
 }));

@@ -1,0 +1,63 @@
+{
+  "kind": "collectionType",
+  "collectionName": "taxes",
+  "info": {
+    "singularName": "tax",
+    "pluralName": "taxes",
+    "displayName": "Tax",
+    "description": "Tax rates and rules for different locations and scenarios"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "rate": {
+      "type": "decimal",
+      "required": true,
+      "min": 0,
+      "max": 100
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "VAT",
+        "GST",
+        "Sales Tax",
+        "Service Tax",
+        "Import Duty"
+      ],
+      "default": "VAT",
+      "required": true
+    },
+
+    "applicableFrom": {
+      "type": "date",
+      "required": true
+    },
+    "applicableTo": {
+      "type": "date"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true,
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "minimumAmount": {
+      "type": "decimal",
+      "min": 0,
+      "default": 0
+    },
+    "maximumAmount": {
+      "type": "decimal",
+      "min": 0
+    }
+  }
+}

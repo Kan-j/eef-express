@@ -30,7 +30,7 @@
     "paymentMethod": {
       "type": "enumeration",
       "enum": [
-        "credit_card",
+        "card",
         "paypal",
         "apple_pay",
         "google_pay",
