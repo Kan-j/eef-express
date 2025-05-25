@@ -618,12 +618,19 @@ export interface ApiPickDropPickDrop extends Struct.CollectionTypeSchema {
     draftAndPublish: false;
   };
   attributes: {
+    adminNotes: Schema.Attribute.Text;
+    approvedAt: Schema.Attribute.DateTime;
+    approvedBy: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
     assignedRider: Schema.Attribute.String;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    deliveryFee: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
     deliveryType: Schema.Attribute.Enumeration<
-      ['Standard', 'Same-Day', 'Next-Day', 'Scheduled']
+      ['Standard', 'Same-Day', 'Next-Day', 'Scheduled', 'Express']
     >;
     dropoffLocation: Schema.Attribute.Component<'address.address', false>;
     images: Schema.Attribute.Media<
@@ -645,11 +652,17 @@ export interface ApiPickDropPickDrop extends Struct.CollectionTypeSchema {
     preferredPickupTime: Schema.Attribute.DateTime;
     price: Schema.Attribute.Decimal;
     publishedAt: Schema.Attribute.DateTime;
+    receiverAddressLine1: Schema.Attribute.String;
+    receiverAddressLine2: Schema.Attribute.String;
     receiverContact: Schema.Attribute.String;
     receiverName: Schema.Attribute.String;
     scheduledDateTime: Schema.Attribute.DateTime;
+    senderAddressLine1: Schema.Attribute.String;
+    senderAddressLine2: Schema.Attribute.String;
     senderContact: Schema.Attribute.String;
     senderName: Schema.Attribute.String;
+    subtotal: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
+    totalAmount: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;

@@ -1,0 +1,1026 @@
+{
+  "info": {
+    "name": "Pick Drop Request API",
+    "description": "Complete API collection for Pick Drop Request functionality with image upload support",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:1337",
+      "type": "string"
+    },
+    {
+      "key": "userToken",
+      "value": "your_user_jwt_token_here",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "your_admin_jwt_token_here",
+      "type": "string"
+    },
+    {
+      "key": "pickDropId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "imageId1",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "imageId2",
+      "value": "2",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Image Upload & Pick Drop Creation",
+      "item": [
+        {
+          "name": "1.1 Upload Images",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test for successful upload",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Parse response and save image IDs",
+                  "if (pm.response.code === 200) {",
+                  "    const responseJson = pm.response.json();",
+                  "    if (Array.isArray(responseJson) && responseJson.length > 0) {",
+                  "        pm.collectionVariables.set(\"imageId1\", responseJson[0].id);",
+                  "        if (responseJson.length > 1) {",
+                  "            pm.collectionVariables.set(\"imageId2\", responseJson[1].id);",
+                  "        }",
+                  "        console.log(\"Image IDs saved:\", responseJson.map(img => img.id));",
+                  "    }",
+                  "}",
+                  "",
+                  "pm.test(\"Response contains uploaded files\", function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.be.an('array');",
+                  "    pm.expect(responseJson.length).to.be.greaterThan(0);",
+                  "    pm.expect(responseJson[0]).to.have.property('id');",
+                  "    pm.expect(responseJson[0]).to.have.property('url');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "files",
+                  "type": "file",
+                  "src": [],
+                  "description": "Select image files to upload (package photos, documents, etc.)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "upload"]
+            },
+            "description": "Upload images for the pick drop request. Select one or more image files. The response will contain file IDs that will be used in the pick drop request."
+          },
+          "response": []
+        },
+        {
+          "name": "1.2 Create Pick Drop Request (with images - Form Data)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Save pick drop ID for other requests",
+                  "if (pm.response.code === 200) {",
+                  "    const responseJson = pm.response.json();",
+                  "    if (responseJson.data && responseJson.data.id) {",
+                  "        pm.collectionVariables.set(\"pickDropId\", responseJson.data.id);",
+                  "        console.log(\"Pick Drop ID saved:\", responseJson.data.id);",
+                  "    }",
+                  "}",
+                  "",
+                  "pm.test(\"Pick drop request created successfully\", function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.data).to.have.property('id');",
+                  "    pm.expect(responseJson.data.pickDropStatus).to.eql('Pending');",
+                  "    pm.expect(responseJson.data.subtotal).to.eql(0);",
+                  "    pm.expect(responseJson.data.deliveryFee).to.be.greaterThan(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "senderName",
+                  "value": "John Doe",
+                  "type": "text"
+                },
+                {
+                  "key": "senderContact",
+                  "value": "+971501234567",
+                  "type": "text"
+                },
+                {
+                  "key": "receiverName",
+                  "value": "Jane Smith",
+                  "type": "text"
+                },
+                {
+                  "key": "receiverContact",
+                  "value": "+971507654321",
+                  "type": "text"
+                },
+                {
+                  "key": "itemDescription",
+                  "value": "Important documents and small electronics package with photos",
+                  "type": "text"
+                },
+                {
+                  "key": "itemWeight",
+                  "value": "2.5",
+                  "type": "text"
+                },
+                {
+                  "key": "preferredPickupTime",
+                  "value": "2024-01-15T10:00:00Z",
+                  "type": "text"
+                },
+                {
+                  "key": "deliveryType",
+                  "value": "Same-Day",
+                  "type": "text"
+                },
+                {
+                  "key": "scheduledDateTime",
+                  "value": "2024-01-15T15:00:00Z",
+                  "type": "text"
+                },
+                {
+                  "key": "senderAddressLine1",
+                  "value": "123 Business Bay Tower, Floor 15",
+                  "type": "text",
+                  "description": "Sender address line 1"
+                },
+                {
+                  "key": "senderAddressLine2",
+                  "value": "Dubai Marina District",
+                  "type": "text",
+                  "description": "Sender address line 2 (optional)"
+                },
+                {
+                  "key": "receiverAddressLine1",
+                  "value": "456 Marina Walk, Apartment 2A",
+                  "type": "text",
+                  "description": "Receiver address line 1"
+                },
+                {
+                  "key": "receiverAddressLine2",
+                  "value": "JBR Beach Area",
+                  "type": "text",
+                  "description": "Receiver address line 2 (optional)"
+                },
+                {
+                  "key": "images",
+                  "type": "file",
+                  "src": [],
+                  "description": "Select image files to upload (package photos, documents, etc.)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/pick-drops",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pick-drops"]
+            },
+            "description": "Create a new pick drop request with direct image upload using form data. Images are uploaded automatically as part of the request. Subtotal starts at 0 and delivery fee is calculated automatically."
+          },
+          "response": []
+        },
+        {
+          "name": "1.3 Create Pick Drop Request (without images - Form Data)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "senderName",
+                  "value": "Alice Johnson",
+                  "type": "text"
+                },
+                {
+                  "key": "senderContact",
+                  "value": "+971509876543",
+                  "type": "text"
+                },
+                {
+                  "key": "receiverName",
+                  "value": "Bob Wilson",
+                  "type": "text"
+                },
+                {
+                  "key": "receiverContact",
+                  "value": "+971501122334",
+                  "type": "text"
+                },
+                {
+                  "key": "itemDescription",
+                  "value": "Documents only - no photos needed",
+                  "type": "text"
+                },
+                {
+                  "key": "itemWeight",
+                  "value": "0.5",
+                  "type": "text"
+                },
+                {
+                  "key": "preferredPickupTime",
+                  "value": "2024-01-16T14:00:00Z",
+                  "type": "text"
+                },
+                {
+                  "key": "deliveryType",
+                  "value": "Standard",
+                  "type": "text"
+                },
+                {
+                  "key": "senderAddressLine1",
+                  "value": "789 Downtown Office Building",
+                  "type": "text",
+                  "description": "Sender address line 1"
+                },
+                {
+                  "key": "senderAddressLine2",
+                  "value": "Business District",
+                  "type": "text",
+                  "description": "Sender address line 2 (optional)"
+                },
+                {
+                  "key": "receiverAddressLine1",
+                  "value": "321 Residential Complex",
+                  "type": "text",
+                  "description": "Receiver address line 1"
+                },
+                {
+                  "key": "receiverAddressLine2",
+                  "value": "Al Barsha Area",
+                  "type": "text",
+                  "description": "Receiver address line 2 (optional)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/pick-drops",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pick-drops"]
+            },
+            "description": "Create a pick drop request without images using form data. Images field is optional and can be omitted entirely."
+          },
+          "response": []
+        }
+      ],
+      "description": "Upload images and create pick drop requests with or without images"
+    },
+    {
+      "name": "2. User Pick Drop Management",
+      "item": [
+        {
+          "name": "2.1 Get My Pick Drop Requests (All)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pick-drops/me?page=1&pageSize=10&sort=createdAt:desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pick-drops", "me"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                },
+                {
+                  "key": "sort",
+                  "value": "createdAt:desc"
+                }
+              ]
+            },
+            "description": "Get all pick drop requests for the authenticated user with pagination"
+          },
+          "response": []
+        },
+        {
+          "name": "2.2 Get My Pick Drop Requests (Filtered)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pick-drops/me?status=Pending&deliveryType=Same-Day&page=1&pageSize=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pick-drops", "me"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "Pending",
+                  "description": "Filter by status: Pending, Confirmed, Cancelled, In Transit, Completed"
+                },
+                {
+                  "key": "deliveryType",
+                  "value": "Same-Day",
+                  "description": "Filter by delivery type: Standard, Same-Day, Next-Day, Scheduled"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "5"
+                }
+              ]
+            },
+            "description": "Get filtered pick drop requests with status and delivery type filters"
+          },
+          "response": []
+        },
+        {
+          "name": "2.3 Get My Pick Drop Requests (Date Range)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pick-drops/me?dateFrom=2024-01-01&dateTo=2024-01-31&sort=createdAt:desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pick-drops", "me"],
+              "query": [
+                {
+                  "key": "dateFrom",
+                  "value": "2024-01-01",
+                  "description": "Start date for filtering (YYYY-MM-DD)"
+                },
+                {
+                  "key": "dateTo",
+                  "value": "2024-01-31",
+                  "description": "End date for filtering (YYYY-MM-DD)"
+                },
+                {
+                  "key": "sort",
+                  "value": "createdAt:desc"
+                }
+              ]
+            },
+            "description": "Get pick drop requests within a specific date range"
+          },
+          "response": []
+        },
+        {
+          "name": "2.4 Get Pick Drop Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pick-drops/{{pickDropId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pick-drops", "{{pickDropId}}"]
+            },
+            "description": "Get detailed information about a specific pick drop request including pricing breakdown and available delivery options"
+          },
+          "response": []
+        },
+        {
+          "name": "2.5 Calculate Delivery Price",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pick-drops/calculate-delivery-price?deliveryType=Express",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pick-drops", "calculate-delivery-price"],
+              "query": [
+                {
+                  "key": "deliveryType",
+                  "value": "Express",
+                  "description": "Delivery type: Standard, Same-Day, Next-Day, Express, Scheduled"
+                }
+              ]
+            },
+            "description": "Calculate delivery price for a specific delivery type and get all available delivery options"
+          },
+          "response": []
+        },
+        {
+          "name": "2.6 Update Delivery Type",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deliveryType\": \"Express\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/pick-drops/{{pickDropId}}/delivery-type",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pick-drops", "{{pickDropId}}", "delivery-type"]
+            },
+            "description": "Update the delivery type for a pick drop request. This will automatically recalculate the delivery fee and total amount. Only allowed for Pending or Confirmed requests."
+          },
+          "response": []
+        },
+        {
+          "name": "2.7 Update Pick Drop Request (Form Data)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Pick drop request updated successfully\", function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.data).to.have.property('id');",
+                  "    pm.expect(responseJson.data.pickDropStatus).to.eql('Pending');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "senderName",
+                  "value": "John Doe Updated",
+                  "type": "text",
+                  "description": "Updated sender name"
+                },
+                {
+                  "key": "senderContact",
+                  "value": "+971501234567",
+                  "type": "text"
+                },
+                {
+                  "key": "receiverName",
+                  "value": "Jane Smith Updated",
+                  "type": "text",
+                  "description": "Updated receiver name"
+                },
+                {
+                  "key": "receiverContact",
+                  "value": "+971507654321",
+                  "type": "text"
+                },
+                {
+                  "key": "itemDescription",
+                  "value": "Updated: Important documents and electronics package",
+                  "type": "text",
+                  "description": "Updated description"
+                },
+                {
+                  "key": "itemWeight",
+                  "value": "3.0",
+                  "type": "text",
+                  "description": "Updated weight"
+                },
+                {
+                  "key": "deliveryType",
+                  "value": "Next-Day",
+                  "type": "text",
+                  "description": "Updated delivery type"
+                },
+                {
+                  "key": "senderAddressLine1",
+                  "value": "Updated: 123 Business Bay Tower, Floor 20",
+                  "type": "text",
+                  "description": "Updated sender address"
+                },
+                {
+                  "key": "senderAddressLine2",
+                  "value": "Dubai Marina District",
+                  "type": "text"
+                },
+                {
+                  "key": "receiverAddressLine1",
+                  "value": "Updated: 456 Marina Walk, Apartment 3B",
+                  "type": "text",
+                  "description": "Updated receiver address"
+                },
+                {
+                  "key": "receiverAddressLine2",
+                  "value": "JBR Beach Area",
+                  "type": "text"
+                },
+                {
+                  "key": "pickupLocation",
+                  "value": "{\"address\": \"Updated Business Bay\", \"city\": \"Dubai\", \"state\": \"Dubai\", \"zipCode\": \"12345\"}",
+                  "type": "text",
+                  "description": "Updated pickup location (JSON)"
+                },
+                {
+                  "key": "dropoffLocation",
+                  "value": "{\"address\": \"Updated Marina Walk\", \"city\": \"Dubai\", \"state\": \"Dubai\", \"zipCode\": \"54321\"}",
+                  "type": "text",
+                  "description": "Updated dropoff location (JSON)"
+                },
+                {
+                  "key": "images",
+                  "type": "file",
+                  "src": [],
+                  "description": "Optional: Upload new images (will replace existing ones)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/pick-drops/{{pickDropId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pick-drops", "{{pickDropId}}"]
+            },
+            "description": "Update a pick drop request using form data. Only allowed for pending requests (not yet confirmed by admin). Supports updating all fields including images. If delivery type is changed, fees are automatically recalculated."
+          },
+          "response": []
+        }
+      ],
+      "description": "User endpoints for managing their own pick drop requests"
+    },
+    {
+      "name": "3. Admin Pick Drop Management",
+      "item": [
+        {
+          "name": "3.1 Get All Pick Drop Requests (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pick-drops?page=1&pageSize=10&sort=createdAt:desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pick-drops"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                },
+                {
+                  "key": "sort",
+                  "value": "createdAt:desc"
+                }
+              ]
+            },
+            "description": "Admin view of all pick drop requests with pagination and filtering options"
+          },
+          "response": []
+        },
+        {
+          "name": "3.2 Get Pending Requests (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pick-drops?status=Pending&sort=createdAt:asc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pick-drops"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "Pending"
+                },
+                {
+                  "key": "sort",
+                  "value": "createdAt:asc",
+                  "description": "Oldest pending requests first"
+                }
+              ]
+            },
+            "description": "Get all pending pick drop requests that need admin approval"
+          },
+          "response": []
+        },
+        {
+          "name": "3.3 Approve Pick Drop Request",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Request approved successfully\", function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.data.pickDropStatus).to.eql('Confirmed');",
+                  "    pm.expect(responseJson.data.subtotal).to.be.greaterThan(0);",
+                  "    pm.expect(responseJson.data.totalAmount).to.be.greaterThan(responseJson.data.subtotal);",
+                  "    pm.expect(responseJson.data.approvedAt).to.not.be.null;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subtotal\": 75.50,\n  \"adminNotes\": \"Approved for same-day delivery. High priority package with proper documentation.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/pick-drops/{{pickDropId}}/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pick-drops", "{{pickDropId}}", "approve"]
+            },
+            "description": "Admin approves a pick drop request and sets the subtotal amount. Status changes to 'Confirmed' and total amount is calculated as subtotal + delivery fee."
+          },
+          "response": []
+        },
+        {
+          "name": "3.4 Update Status to In Transit",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"In Transit\",\n  \"assignedRider\": \"RIDER_001\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/pick-drops/{{pickDropId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pick-drops", "{{pickDropId}}", "status"]
+            },
+            "description": "Update pick drop status to 'In Transit' and assign a rider"
+          },
+          "response": []
+        },
+        {
+          "name": "3.5 Update Status to Completed",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Completed\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/pick-drops/{{pickDropId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pick-drops", "{{pickDropId}}", "status"]
+            },
+            "description": "Mark pick drop request as completed"
+          },
+          "response": []
+        },
+        {
+          "name": "3.6 Cancel Pick Drop Request",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Cancelled\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/pick-drops/{{pickDropId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pick-drops", "{{pickDropId}}", "status"]
+            },
+            "description": "Cancel a pick drop request"
+          },
+          "response": []
+        }
+      ],
+      "description": "Admin endpoints for managing all pick drop requests"
+    },
+    {
+      "name": "4. Error Testing",
+      "item": [
+        {
+          "name": "4.1 Test Invalid Image IDs",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"senderName\": \"Test User\",\n  \"senderContact\": \"+971501234567\",\n  \"receiverName\": \"Test Receiver\",\n  \"receiverContact\": \"+971507654321\",\n  \"itemDescription\": \"Test package\",\n  \"itemWeight\": 1.0,\n  \"deliveryType\": \"Standard\",\n  \"images\": [\"invalid\", \"abc\", -1]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/pick-drops",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pick-drops"]
+            },
+            "description": "Test error handling for invalid image IDs. Should return 400 Bad Request with clear error message."
+          },
+          "response": []
+        },
+        {
+          "name": "4.2 Test Non-existent Image IDs",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"senderName\": \"Test User\",\n  \"senderContact\": \"+971501234567\",\n  \"receiverName\": \"Test Receiver\",\n  \"receiverContact\": \"+971507654321\",\n  \"itemDescription\": \"Test package\",\n  \"itemWeight\": 1.0,\n  \"deliveryType\": \"Standard\",\n  \"images\": [999, 1000]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/pick-drops",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pick-drops"]
+            },
+            "description": "Test error handling for non-existent image IDs. Should return 400 Bad Request indicating which image ID was not found."
+          },
+          "response": []
+        },
+        {
+          "name": "4.3 Test Invalid Delivery Type",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deliveryType\": \"InvalidType\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/pick-drops/{{pickDropId}}/delivery-type",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pick-drops", "{{pickDropId}}", "delivery-type"]
+            },
+            "description": "Test error handling for invalid delivery type. Should return 400 Bad Request with list of valid delivery types."
+          },
+          "response": []
+        },
+        {
+          "name": "4.4 Test Unauthorized Access",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/pick-drops/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pick-drops", "me"]
+            },
+            "description": "Test unauthorized access without authentication token. Should return 401 Unauthorized."
+          },
+          "response": []
+        }
+      ],
+      "description": "Test error scenarios and validation"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global pre-request script",
+          "console.log('Making request to:', pm.request.url.toString());"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test script",
+          "pm.test('Response time is less than 5000ms', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});"
+        ]
+      }
+    }
+  ]
+}

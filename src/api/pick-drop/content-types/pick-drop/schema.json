@@ -68,7 +68,8 @@
         "Standard",
         "Same-Day",
         "Next-Day",
-        "Scheduled"
+        "Scheduled",
+        "Express"
       ]
     },
     "scheduledDateTime": {
@@ -76,6 +77,29 @@
     },
     "price": {
       "type": "decimal"
+    },
+    "subtotal": {
+      "type": "decimal",
+      "default": 0
+    },
+    "deliveryFee": {
+      "type": "decimal",
+      "default": 0
+    },
+    "totalAmount": {
+      "type": "decimal",
+      "default": 0
+    },
+    "adminNotes": {
+      "type": "text"
+    },
+    "approvedAt": {
+      "type": "datetime"
+    },
+    "approvedBy": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
     },
     "pickupLocation": {
       "type": "component",
@@ -86,6 +110,18 @@
       "type": "component",
       "repeatable": false,
       "component": "address.address"
+    },
+    "senderAddressLine1": {
+      "type": "string"
+    },
+    "senderAddressLine2": {
+      "type": "string"
+    },
+    "receiverAddressLine1": {
+      "type": "string"
+    },
+    "receiverAddressLine2": {
+      "type": "string"
     }
   }
 }
