@@ -181,7 +181,7 @@ export default factories.createCoreController('api::order.order', ({ strapi }) =
   },
 
   /**
-   * Get user's order history
+   * Get user's order history with enhanced filtering
    */
   async myOrders(ctx) {
     try {
@@ -192,10 +192,16 @@ export default factories.createCoreController('api::order.order', ({ strapi }) =
         return ctx.unauthorized('You must be logged in');
       }
 
+      console.log(`📋 Getting order history for user ${user.id}`);
+      console.log(`🔍 Query parameters:`, query);
+
       const data = await strapi.service('api::order.order').getUserOrderHistory(user.id, query);
+
+      console.log(`✅ Found ${data.results.length} orders for user ${user.id}`);
 
       return this.transformResponse(data);
     } catch (error) {
+      console.error('❌ Error getting user orders:', error);
       ctx.throw(500, error);
     }
   },
@@ -223,6 +229,179 @@ export default factories.createCoreController('api::order.order', ({ strapi }) =
       if (error.message === 'Order not found') {
         return ctx.notFound('Order not found');
       }
+      ctx.throw(500, error);
+    }
+  },
+
+  /**
+   * Get all orders (Admin only) with advanced filtering
+   */
+  async findAll(ctx) {
+    try {
+      const { user } = ctx.state;
+      const { query } = ctx;
+
+      // Check if user is admin
+      if (!user || !user.role || user.role.type !== 'admin') {
+        return ctx.forbidden('Only administrators can view all orders');
+      }
+
+      console.log(`📋 Admin ${user.id} getting all orders`);
+      console.log(`🔍 Query parameters:`, query);
+
+      const data = await strapi.service('api::order.order').getAllOrders(query);
+
+      console.log(`✅ Found ${data.results.length} total orders`);
+
+      return this.transformResponse(data);
+    } catch (error) {
+      console.error('❌ Error getting all orders:', error);
+      ctx.throw(500, error);
+    }
+  },
+
+  /**
+   * Cancel an order (User can cancel their own orders, Admin can cancel any)
+   */
+  async cancelOrder(ctx) {
+    try {
+      const { id } = ctx.params;
+      const { user } = ctx.state;
+      const { reason } = ctx.request.body;
+
+      if (!user) {
+        return ctx.unauthorized('You must be logged in');
+      }
+
+      if (!id) {
+        return ctx.badRequest('Order ID is required');
+      }
+
+      console.log(`🚫 User ${user.id} attempting to cancel order ${id}`);
+
+      const result = await strapi.service('api::order.order').cancelOrder(
+        parseInt(id),
+        user.id,
+        user.role?.type === 'admin',
+        reason
+      );
+
+      console.log(`✅ Order ${id} cancelled successfully`);
+
+      return this.transformResponse(result);
+    } catch (error) {
+      console.error('❌ Error cancelling order:', error);
+      if (error.message === 'Order not found') {
+        return ctx.notFound('Order not found');
+      }
+      if (error.message === 'Cannot cancel this order') {
+        return ctx.badRequest('Cannot cancel this order');
+      }
+      if (error.message === 'Unauthorized') {
+        return ctx.forbidden('You can only cancel your own orders');
+      }
+      ctx.throw(500, error);
+    }
+  },
+
+  /**
+   * Get order statistics (Admin only)
+   */
+  async getOrderStats(ctx) {
+    try {
+      const { user } = ctx.state;
+      const { query } = ctx;
+
+      // Check if user is admin
+      if (!user || !user.role || user.role.type !== 'admin') {
+        return ctx.forbidden('Only administrators can view order statistics');
+      }
+
+      console.log(`📊 Admin ${user.id} getting order statistics`);
+
+      const stats = await strapi.service('api::order.order').getOrderStatistics(query);
+
+      console.log(`✅ Order statistics generated`);
+
+      return ctx.send({
+        data: stats,
+        meta: {
+          timestamp: new Date().toISOString(),
+          generatedBy: user.id
+        }
+      });
+    } catch (error) {
+      console.error('❌ Error getting order statistics:', error);
+      ctx.throw(500, error);
+    }
+  },
+
+  /**
+   * Update order delivery status with tracking
+   */
+  async updateDeliveryStatus(ctx) {
+    try {
+      const { id } = ctx.params;
+      const { status, locationNote, estimatedDelivery } = ctx.request.body;
+      const { user } = ctx.state;
+
+      // Check if user is admin
+      if (!user || !user.role || user.role.type !== 'admin') {
+        return ctx.forbidden('Only administrators can update delivery status');
+      }
+
+      if (!id) {
+        return ctx.badRequest('Order ID is required');
+      }
+
+      if (!status) {
+        return ctx.badRequest('Delivery status is required');
+      }
+
+      console.log(`🚚 Admin ${user.id} updating delivery status for order ${id}`);
+
+      const result = await strapi.service('api::order.order').updateDeliveryStatus(
+        parseInt(id),
+        status,
+        locationNote,
+        estimatedDelivery
+      );
+
+      console.log(`✅ Delivery status updated for order ${id}`);
+
+      return this.transformResponse(result);
+    } catch (error) {
+      console.error('❌ Error updating delivery status:', error);
+      if (error.message === 'Order not found') {
+        return ctx.notFound('Order not found');
+      }
+      ctx.throw(500, error);
+    }
+  },
+
+  /**
+   * Search orders by various criteria (Admin only)
+   */
+  async searchOrders(ctx) {
+    try {
+      const { user } = ctx.state;
+      const { query } = ctx;
+
+      // Check if user is admin
+      if (!user || !user.role || user.role.type !== 'admin') {
+        return ctx.forbidden('Only administrators can search orders');
+      }
+
+      console.log(`🔍 Admin ${user.id} searching orders`);
+      console.log(`🔍 Search parameters:`, query);
+
+      const data = await strapi.service('api::order.order').searchOrders(query);
+
+      console.log(`✅ Found ${data.results.length} orders matching search criteria`);
+
+      return this.transformResponse(data);
+    } catch (error) {
+      console.error('❌ Error searching orders:', error);
       ctx.throw(500, error);
     }
   },

@@ -14,6 +14,7 @@ export default [
       includeUnparsed: true,
     },
   },
+  'global::raw-body', // 👈 Add raw body reader AFTER built-in body middleware
   'strapi::session',
   'strapi::favicon',
   'strapi::public',

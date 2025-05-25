@@ -16,46 +16,44 @@ export default {
     console.log(`\n🔔 ===== STRIPE WEBHOOK RECEIVED =====`);
     console.log(`📅 Timestamp: ${new Date().toISOString()}`);
     console.log(`🌐 IP Address: ${ctx.request.ip}`);
+    console.log(`🔍 Request URL: ${ctx.request.url}`);
+    console.log(`🔍 Request Method: ${ctx.request.method}`);
+
+    // Log all request headers
+    console.log(`📜 Request Headers:`, JSON.stringify(ctx.request.headers, null, 2));
+
+    // Log request body information
+    console.log(`📜 Request Body Info:`);
+    console.log(`   ctx.request.body type: ${typeof ctx.request.body}`);
+    console.log(`   ctx.request.body: ${ctx.request.body ? 'Present' : 'Missing'}`);
+    console.log(`   ctx.request.rawBody type: ${typeof ctx.request.rawBody}`);
+    console.log(`   ctx.request.rawBody: ${ctx.request.rawBody ? 'Present' : 'Missing'}`);
+
+    if (ctx.request.body) {
+      console.log(`   ctx.request.body length: ${ctx.request.body.length || 'N/A'}`);
+      console.log(`   ctx.request.body isBuffer: ${Buffer.isBuffer(ctx.request.body)}`);
+    }
+
+    if (ctx.request.rawBody) {
+      console.log(`   ctx.request.rawBody length: ${ctx.request.rawBody.length || 'N/A'}`);
+      console.log(`   ctx.request.rawBody isBuffer: ${Buffer.isBuffer(ctx.request.rawBody)}`);
+    }
+
+    try {
 
     const sig = ctx.request.headers['stripe-signature'];
-    let raw: any;
+    const raw = ctx.request.rawBody;
     let event: any;
 
-    // Since we disabled body parsing, we need to read the raw body manually
-    if (!ctx.request.body) {
-      console.log(`📜 Reading raw body from request stream...`);
+    console.log(`🔍 Pre-verification data:`);
+    console.log(`   sig: ${sig}`);
+    console.log(`   raw type: ${typeof raw}`);
+    console.log(`   raw: ${raw ? 'Present' : 'Missing'}`);
+    console.log(`   STRIPE_WEBHOOK_SECRET: ${process.env.STRIPE_WEBHOOK_SECRET ? 'Present' : 'Missing'}`);
 
-      // Read raw body from request stream
-      const chunks: Buffer[] = [];
-
-      try {
-        await new Promise((resolve, reject) => {
-          ctx.req.on('data', (chunk: Buffer) => {
-            chunks.push(chunk);
-          });
-
-          ctx.req.on('end', () => {
-            raw = Buffer.concat(chunks);
-            resolve(true);
-          });
-
-          ctx.req.on('error', (error: any) => {
-            reject(error);
-          });
-
-          // Timeout after 10 seconds
-          setTimeout(() => {
-            reject(new Error('Request timeout'));
-          }, 10000);
-        });
-      } catch (error) {
-        console.error('❌ Error reading request body:', error);
-        console.error(`🏁 ===== WEBHOOK ERROR END =====\n`);
-        return ctx.badRequest('Error reading request body');
-      }
-    } else {
-      // Fallback to existing methods
-      raw = ctx.request.body?._raw || ctx.request.rawBody || ctx.request.body;
+    if (raw && Buffer.isBuffer(raw)) {
+      console.log(`   raw buffer length: ${raw.length}`);
+      console.log(`   raw buffer first 100 chars: ${raw.toString().substring(0, 100)}...`);
     }
 
     console.log(`🔐 Signature verification details:`);
@@ -65,34 +63,19 @@ export default {
     console.log(`   Raw body is Buffer: ${Buffer.isBuffer(raw)}`);
     console.log(`   Webhook secret configured: ${process.env.STRIPE_WEBHOOK_SECRET ? 'Yes' : 'No'}`);
 
-    if (!sig) {
-      console.error('❌ Missing Stripe signature header');
-      console.error(`🏁 ===== WEBHOOK ERROR END =====\n`);
-      return ctx.badRequest('Missing Stripe signature');
-    }
-
-    if (!raw) {
-      console.error('❌ Missing raw request body');
-      console.error(`🏁 ===== WEBHOOK ERROR END =====\n`);
-      return ctx.badRequest('Missing request body');
-    }
-
-    if (!process.env.STRIPE_WEBHOOK_SECRET) {
-      console.error('❌ Missing STRIPE_WEBHOOK_SECRET environment variable');
-      console.error(`🏁 ===== WEBHOOK ERROR END =====\n`);
-      return ctx.badRequest('Webhook secret not configured');
-    }
-
     try {
-      // Verify webhook signature using raw body
       event = stripe.webhooks.constructEvent(
         raw,
         sig,
         process.env.STRIPE_WEBHOOK_SECRET
       );
       console.log(`✅ Webhook signature verified successfully`);
-    } catch (err) {
-      console.error('❌ Webhook signature verification failed:', err.message);
+
+      // Log the complete event object
+      console.log(`📜 Complete Event Object:`, JSON.stringify(event, null, 2));
+
+    } catch (err: any) {
+      console.error('🔐 Webhook signature verification failed:', err.message);
       console.error(`🔍 Debug info:`, {
         signatureHeader: sig,
         rawBodyType: typeof raw,
@@ -106,107 +89,70 @@ export default {
 
     console.log(`🔔 Event Type: ${event.type}`);
     console.log(`🆔 Event ID: ${event.id}`);
+    console.log(`📜 Event Data Object:`, JSON.stringify(event.data, null, 2));
 
-    // Handle checkout session completed event
+    // 🎯 Only handle checkout.session.completed
     if (event.type === 'checkout.session.completed') {
-      await this.handleCheckoutSessionCompleted(event.data.object);
-    } else {
-      console.log(`ℹ️ Unhandled event type: ${event.type}`);
-    }
+      console.log(`🎯 Processing checkout.session.completed event`);
 
-    console.log(`🏁 ===== STRIPE WEBHOOK COMPLETED =====\n`);
-    return ctx.send({ received: true });
-  },
-
-  /**
-   * Handle successful checkout session completion
-   */
-  async handleCheckoutSessionCompleted(session: any) {
-    console.log(`✅ Processing checkout session completed: ${session.id}`);
-
-    const orderId = session.metadata?.order_id;
-
-    if (!orderId) {
-      console.error('❌ Missing order_id in session metadata');
-      return;
-    }
-
-    console.log(`📋 Processing order ID: ${orderId}`);
-
-    try {
-      // 🔍 Find order with payment relation
-      const order = await strapi.entityService.findOne('api::order.order', orderId, {
-        populate: ['payment'],
-      }) as any;
-
-      if (!order) {
-        console.error(`❌ Order not found for ID ${orderId}`);
-        return;
-      }
-
-      console.log(`📦 Order found:`, {
-        id: order.id,
-        paymentStatus: order.paymentStatus,
-        totalAmount: order.totalAmount,
-        hasPayment: !!order.payment
+      const session = event.data.object;
+      console.log(`📋 Session details:`, {
+        id: session.id,
+        paymentStatus: session.payment_status,
+        amountTotal: session.amount_total,
+        currency: session.currency,
+        customer: session.customer,
+        customerEmail: session.customer_email
       });
 
-      // ✅ Skip if already marked as completed
-      if (order.paymentStatus === 'completed') {
-        console.log(`ℹ️ Order ${orderId} already completed`);
-        return;
+      const orderId = session.metadata?.order_id;
+      const userId = session.metadata?.user_id;
+
+      console.log(`🔍 Metadata extraction:`);
+      console.log(`   Order ID: ${orderId || 'Missing'}`);
+      console.log(`   User ID: ${userId || 'Missing'}`);
+
+      if (!orderId || !userId) {
+        console.error('❌ Missing metadata: order_id or user_id not found in session');
+        console.error(`🏁 ===== WEBHOOK ERROR END =====\n`);
+        return ctx.badRequest('Invalid metadata');
       }
 
-      // 🔄 Update existing payment record
-      if (order.payment) {
-        console.log(`🔄 Updating payment record ID: ${order.payment.id}`);
+      console.log(`🔍 Step 1: Checking if order exists...`);
+      console.log(`   Looking for order ID: ${orderId}`);
+      console.log(`   Order ID type: ${typeof orderId}`);
 
-        await strapi.entityService.update('api::payment.payment', order.payment.id, {
-          data: {
-            status: 'completed',
-            transactionId: session.id,
-            paymentDetails: {
-              stripeSessionId: session.id,
-              stripeCustomerId: session.customer,
-              stripePaymentIntentId: session.payment_intent,
-              customerEmail: session.customer_details?.email || session.customer_email,
-              paymentStatus: session.payment_status,
-              amountTotal: session.amount_total,
-              currency: session.currency,
-              completedAt: new Date().toISOString(),
-            },
-            publishedAt: new Date(),
-          },
-        });
+      // Check if the order exists
+      const existingOrder = await strapi.entityService.findOne('api::order.order', orderId, {
+        populate: ['payment'], // Optional: check existing payment
+      });
 
-        console.log(`✅ Payment ${order.payment.id} updated successfully`);
-      } else {
-        console.warn(`⚠️ Order ${orderId} has no associated payment record`);
-
-        // Create a new payment record if none exists
-        const paymentService = strapi.service('api::payment.payment');
-        await paymentService.createPayment({
-          amount: session.amount_total / 100, // Convert from cents
-          status: 'completed',
-          paymentMethod: 'card',
-          transactionId: session.id,
-          paymentDetails: {
-            stripeSessionId: session.id,
-            stripeCustomerId: session.customer,
-            stripePaymentIntentId: session.payment_intent,
-            customerEmail: session.customer_details?.email || session.customer_email,
-            paymentStatus: session.payment_status,
-            amountTotal: session.amount_total,
-            currency: session.currency,
-            completedAt: new Date().toISOString(),
-          },
-          orderId: order.id,
-          userId: order.users_permissions_user?.id || session.metadata?.user_id,
-        });
-
-        console.log(`🆕 New payment record created for order ${orderId}`);
+      console.log(`📜 Order query result:`, existingOrder ? 'Found' : 'Not found');
+      if (existingOrder) {
+        console.log(`📜 Complete Order Object:`, JSON.stringify(existingOrder, null, 2));
       }
 
+      if (!existingOrder) {
+        console.error(`❌ Order not found for ID ${orderId}`);
+        console.error(`🏁 ===== WEBHOOK ERROR END =====\n`);
+        return ctx.notFound('Order not found');
+      }
+
+      console.log(`✅ Order found:`, {
+        id: (existingOrder as any).id,
+        paymentStatus: (existingOrder as any).paymentStatus,
+        totalAmount: (existingOrder as any).totalAmount,
+        hasPayment: !!(existingOrder as any).payment
+      });
+
+      // Prevent duplicate webhook processing
+      if ((existingOrder as any).paymentStatus === 'completed') {
+        console.log(`ℹ️ Order ${orderId} already marked as completed. Skipping.`);
+        console.log(`🏁 ===== STRIPE WEBHOOK COMPLETED =====\n`);
+        return ctx.send({ received: true });
+      }
+
+      console.log(`🔄 Step 2: Updating order payment status...`);
       // ✅ Mark order as paid
       await strapi.entityService.update('api::order.order', orderId, {
         data: {
@@ -214,42 +160,95 @@ export default {
           publishedAt: new Date(),
         },
       });
-
       console.log(`✅ Order ${orderId} marked as completed`);
 
+      console.log(`💳 Step 3: Recording Stripe payment...`);
+
+      const paymentData = {
+        amount: session.amount_total / 100, // Convert from cents
+        status: 'completed' as const,
+        paymentMethod: 'card' as const,
+        transactionId: session.id,
+        paymentDetails: {
+          stripeSessionId: session.id,
+          stripeCustomerId: session.customer,
+          stripePaymentIntentId: session.payment_intent,
+          customerEmail: session.customer_email,
+          paymentStatus: session.payment_status,
+          amountTotal: session.amount_total,
+          currency: session.currency,
+          completedAt: new Date().toISOString(),
+        },
+        order: orderId,
+        users_permissions_user: userId,
+        publishedAt: new Date(),
+      };
+
+      console.log(`📜 Payment data to create:`, JSON.stringify(paymentData, null, 2));
+
+      // 💳 Record Stripe Payment
+      const paymentRecord = await strapi.entityService.create('api::payment.payment', {
+        data: paymentData,
+      });
+
+      console.log(`✅ Payment record created with ID: ${(paymentRecord as any).id}`);
+      console.log(`📜 Created Payment Record:`, JSON.stringify(paymentRecord, null, 2));
+
+      console.log(`🧹 Step 4: Clearing user cart...`);
       // Clear the cart now that payment is completed
-      const userId = order.users_permissions_user?.id || session.metadata?.user_id;
-      if (userId) {
-        console.log(`🧹 Clearing cart for user ${userId}`);
+      try {
         const cartService = strapi.service('api::cart.cart');
         await cartService.clearCart(parseInt(userId));
         console.log(`✅ Cart cleared for user ${userId}`);
-      } else {
-        console.warn(`⚠️ No user ID found to clear cart`);
+      } catch (cartError: any) {
+        console.error(`⚠️ Failed to clear cart for user ${userId}:`, cartError.message);
+        // Don't fail the webhook for cart clearing issues
       }
 
-      // Send order confirmation (don't await to avoid blocking webhook response)
-      if (userId) {
-        const checkoutService = strapi.service('api::checkout.checkout');
-        checkoutService.sendOrderConfirmation(parseInt(userId), order)
-          .then(() => {
-            console.log(`📧 Order confirmation sent for order ${orderId}`);
-          })
-          .catch((emailError: any) => {
-            console.error(`❌ Failed to send order confirmation:`, emailError.message);
-          });
-      }
+      console.log(`📧 Step 5: Scheduling order confirmation...`);
+      // Schedule order confirmation (don't await to avoid blocking webhook response)
+      setImmediate(() => {
+        try {
+          const checkoutService = strapi.service('api::checkout.checkout');
+          checkoutService.sendOrderConfirmation(parseInt(userId), existingOrder)
+            .then(() => {
+              console.log(`📧 Order confirmation sent for order ${orderId}`);
+            })
+            .catch((emailError: any) => {
+              console.error(`❌ Failed to send order confirmation:`, emailError.message);
+            });
+        } catch (emailServiceError: any) {
+          console.error(`⚠️ Email service error:`, emailServiceError.message);
+        }
+      });
 
-      console.log(`🎉 Checkout session processing completed for order ${orderId}`);
-    } catch (error) {
-      console.error(`❌ Error handling checkout session completed:`, error);
-      console.error(`Error details:`, {
-        message: error.message,
-        stack: error.stack,
-        orderId,
-        sessionId: session.id
+      console.log(`🎉 Order ${orderId} processing completed successfully!`);
+      console.log(`📊 Summary:`);
+      console.log(`   Order ID: ${orderId}`);
+      console.log(`   User ID: ${userId}`);
+      console.log(`   Payment Amount: $${session.amount_total / 100}`);
+      console.log(`   Stripe Session: ${session.id}`);
+      console.log(`   Payment Record ID: ${(paymentRecord as any).id}`);
+    } else {
+      console.log(`ℹ️ Unhandled event type: ${event.type}`);
+    }
+
+    console.log(`🏁 ===== STRIPE WEBHOOK COMPLETED =====\n`);
+    return ctx.send({ received: true });
+
+    } catch (globalError: any) {
+      console.error(`\n💥 ===== WEBHOOK GLOBAL ERROR =====`);
+      console.error(`❌ Error Type: ${globalError.constructor.name}`);
+      console.error(`❌ Error Message: ${globalError.message}`);
+      console.error(`❌ Error Stack:`, globalError.stack);
+      console.error(`🏁 ===== WEBHOOK GLOBAL ERROR END =====\n`);
+
+      // Always return 200 to Stripe to prevent retries
+      return ctx.send({
+        received: true,
+        error: 'Webhook processing failed',
+        details: globalError.message
       });
     }
   },
-
 };
