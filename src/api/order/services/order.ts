@@ -71,7 +71,7 @@ export default factories.createCoreService('api::order.order', ({ strapi }) => (
         orderStatus: [initialStatus],
         publishedAt: new Date(),
       },
-      populate: ['products', 'products.product', 'shippingAddress', 'orderStatus'],
+      populate: ['products', 'products.product', 'products.product.images', 'shippingAddress', 'orderStatus'],
     });
 
     // Note: Cart clearing is handled in the checkout service after successful payment
@@ -108,7 +108,7 @@ export default factories.createCoreService('api::order.order', ({ strapi }) => (
       data: {
         orderStatus: updatedStatusLog,
       },
-      populate: ['products', 'products.product', 'shippingAddress', 'orderStatus'],
+      populate: ['products', 'products.product', 'products.product.images', 'shippingAddress', 'orderStatus'],
     });
 
     return updatedOrder;
@@ -125,7 +125,7 @@ export default factories.createCoreService('api::order.order', ({ strapi }) => (
       filters: {
         users_permissions_user: { id: userId },
       },
-      populate: ['products', 'products.product', 'shippingAddress', 'orderStatus'],
+      populate: ['products', 'products.product', 'products.product.images', 'shippingAddress', 'orderStatus'],
       sort,
       page: parseInt(page),
       pageSize: parseInt(pageSize),
@@ -235,6 +235,7 @@ export default factories.createCoreService('api::order.order', ({ strapi }) => (
         'users_permissions_user',
         'products',
         'products.product',
+        'products.product.images',
         'shippingAddress',
         'orderStatus',
         'payment'
@@ -482,6 +483,7 @@ export default factories.createCoreService('api::order.order', ({ strapi }) => (
         'users_permissions_user',
         'products',
         'products.product',
+        'products.product.images',
         'shippingAddress',
         'orderStatus',
         'payment'
