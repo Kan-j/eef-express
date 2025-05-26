@@ -22,14 +22,18 @@ export default factories.createCoreService('api::pick-drop.pick-drop', ({ strapi
       data: {
         users_permissions_user: { id: userId },
         senderName: pickDropData.senderName,
-        senderContact: pickDropData.senderContact,
+        senderPhoneNumber: pickDropData.senderPhoneNumber,
         receiverName: pickDropData.receiverName,
-        receiverContact: pickDropData.receiverContact,
+        receiverPhoneNumber: pickDropData.receiverPhoneNumber,
         itemDescription: pickDropData.itemDescription,
-        itemWeight: pickDropData.itemWeight,
-        preferredPickupTime: pickDropData.preferredPickupTime,
+        itemWeightKg: pickDropData.itemWeightKg,
+        pickupDateTime: pickDropData.pickupDateTime,
+        pickupAddress: pickDropData.pickupAddress,
+        dropOffLocation: pickDropData.dropOffLocation,
+        dropOffDateTime: pickDropData.dropOffDateTime,
+        dropOffAddress: pickDropData.dropOffAddress,
         pickDropStatus: 'Pending',
-        images: pickDropData.images || [],
+        itemImage: pickDropData.itemImage || null,
         deliveryType: pickDropData.deliveryType || 'Standard',
         scheduledDateTime: pickDropData.scheduledDateTime || null,
         senderAddressLine1: pickDropData.senderAddressLine1 || null,
@@ -37,19 +41,16 @@ export default factories.createCoreService('api::pick-drop.pick-drop', ({ strapi
         receiverAddressLine1: pickDropData.receiverAddressLine1 || null,
         receiverAddressLine2: pickDropData.receiverAddressLine2 || null,
         pickupLocation: pickDropData.pickupLocation || null,
-        dropoffLocation: pickDropData.dropoffLocation || null,
         subtotal: 0, // Initially 0, admin will set this
         deliveryFee: deliveryFee,
         totalAmount: deliveryFee, // Initially just delivery fee
         publishedAt: new Date(),
       },
       populate: {
-        images: true,
+        itemImage: true,
         users_permissions_user: {
           fields: ['id', 'username', 'email']
-        },
-        pickupLocation: true,
-        dropoffLocation: true
+        }
       },
     });
 
@@ -96,12 +97,10 @@ export default factories.createCoreService('api::pick-drop.pick-drop', ({ strapi
     const updatedPickDrop = await strapi.entityService.update('api::pick-drop.pick-drop', pickDropId, {
       data: updateData,
       populate: {
-        images: true,
+        itemImage: true,
         users_permissions_user: {
           fields: ['id', 'username', 'email']
-        },
-        pickupLocation: true,
-        dropoffLocation: true
+        }
       },
     });
 
@@ -166,12 +165,10 @@ export default factories.createCoreService('api::pick-drop.pick-drop', ({ strapi
     const { results, pagination } = await strapi.entityService.findPage('api::pick-drop.pick-drop', {
       filters,
       populate: {
-        images: true,
+        itemImage: true,
         users_permissions_user: {
           fields: ['id', 'username', 'email']
-        },
-        pickupLocation: true,
-        dropoffLocation: true
+        }
       },
       sort,
       page: parseInt(page),
@@ -200,15 +197,13 @@ export default factories.createCoreService('api::pick-drop.pick-drop', ({ strapi
     const pickDrops = await strapi.entityService.findMany('api::pick-drop.pick-drop', {
       filters,
       populate: {
-        images: true,
+        itemImage: true,
         users_permissions_user: {
           fields: ['id', 'username', 'email']
         },
         approvedBy: {
           fields: ['id', 'username', 'email']
-        },
-        pickupLocation: true,
-        dropoffLocation: true
+        }
       },
     });
 
@@ -309,7 +304,7 @@ export default factories.createCoreService('api::pick-drop.pick-drop', ({ strapi
     const { results, pagination } = await strapi.entityService.findPage('api::pick-drop.pick-drop', {
       filters,
       populate: {
-        images: true,
+        itemImage: true,
         users_permissions_user: {
           fields: ['id', 'username', 'email']
         },
@@ -371,7 +366,7 @@ export default factories.createCoreService('api::pick-drop.pick-drop', ({ strapi
         approvedBy: { id: adminUserId },
       },
       populate: {
-        images: true,
+        itemImage: true,
         users_permissions_user: {
           fields: ['id', 'username', 'email']
         },
@@ -451,12 +446,10 @@ export default factories.createCoreService('api::pick-drop.pick-drop', ({ strapi
         totalAmount: newTotalAmount,
       },
       populate: {
-        images: true,
+        itemImage: true,
         users_permissions_user: {
           fields: ['id', 'username', 'email']
-        },
-        pickupLocation: true,
-        dropoffLocation: true
+        }
       },
     });
 
@@ -497,12 +490,10 @@ export default factories.createCoreService('api::pick-drop.pick-drop', ({ strapi
         users_permissions_user: { id: userId }
       },
       populate: {
-        images: true,
+        itemImage: true,
         users_permissions_user: {
           fields: ['id', 'username', 'email']
-        },
-        pickupLocation: true,
-        dropoffLocation: true
+        }
       },
     });
 
@@ -541,19 +532,17 @@ export default factories.createCoreService('api::pick-drop.pick-drop', ({ strapi
 
     console.log(`   Final update data:`, {
       ...finalUpdateData,
-      images: updateData.images ? `${updateData.images.length} images` : 'no image update'
+      itemImage: updateData.itemImage ? 'Image updated' : 'no image update'
     });
 
     // Update the pick-drop request
     const updatedPickDrop = await strapi.entityService.update('api::pick-drop.pick-drop', pickDropId, {
       data: finalUpdateData,
       populate: {
-        images: true,
+        itemImage: true,
         users_permissions_user: {
           fields: ['id', 'username', 'email']
-        },
-        pickupLocation: true,
-        dropoffLocation: true
+        }
       },
     });
 

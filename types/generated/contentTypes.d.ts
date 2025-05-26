@@ -632,13 +632,12 @@ export interface ApiPickDropPickDrop extends Struct.CollectionTypeSchema {
     deliveryType: Schema.Attribute.Enumeration<
       ['Standard', 'Same-Day', 'Next-Day', 'Scheduled', 'Express']
     >;
-    dropoffLocation: Schema.Attribute.Component<'address.address', false>;
-    images: Schema.Attribute.Media<
-      'images' | 'files' | 'videos' | 'audios',
-      true
-    >;
+    dropOffAddress: Schema.Attribute.String;
+    dropOffDateTime: Schema.Attribute.DateTime;
+    dropOffLocation: Schema.Attribute.String;
     itemDescription: Schema.Attribute.Text;
-    itemWeight: Schema.Attribute.Decimal;
+    itemImage: Schema.Attribute.Media<'images'>;
+    itemWeightKg: Schema.Attribute.Decimal;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -648,19 +647,20 @@ export interface ApiPickDropPickDrop extends Struct.CollectionTypeSchema {
     pickDropStatus: Schema.Attribute.Enumeration<
       ['Pending', 'Confirmed', 'Cancelled', 'In Transit', 'Completed']
     >;
-    pickupLocation: Schema.Attribute.Component<'address.address', false>;
-    preferredPickupTime: Schema.Attribute.DateTime;
+    pickupAddress: Schema.Attribute.String;
+    pickupDateTime: Schema.Attribute.DateTime;
+    pickupLocation: Schema.Attribute.String;
     price: Schema.Attribute.Decimal;
     publishedAt: Schema.Attribute.DateTime;
     receiverAddressLine1: Schema.Attribute.String;
     receiverAddressLine2: Schema.Attribute.String;
-    receiverContact: Schema.Attribute.String;
     receiverName: Schema.Attribute.String;
+    receiverPhoneNumber: Schema.Attribute.String;
     scheduledDateTime: Schema.Attribute.DateTime;
     senderAddressLine1: Schema.Attribute.String;
     senderAddressLine2: Schema.Attribute.String;
-    senderContact: Schema.Attribute.String;
     senderName: Schema.Attribute.String;
+    senderPhoneNumber: Schema.Attribute.String;
     subtotal: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
     totalAmount: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
     updatedAt: Schema.Attribute.DateTime;

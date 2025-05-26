@@ -27,7 +27,7 @@ export default factories.createCoreController('api::pick-drop.pick-drop', ({ str
         receiverName: pickDropData.receiverName,
         itemDescription: pickDropData.itemDescription,
         deliveryType: pickDropData.deliveryType,
-        hasFiles: files && files.images ? (Array.isArray(files.images) ? files.images.length : 1) : 0
+        hasFiles: files && files.itemImage ? 1 : 0
       });
 
       // Validate required fields
@@ -35,111 +35,85 @@ export default factories.createCoreController('api::pick-drop.pick-drop', ({ str
         return ctx.badRequest('Sender name is required');
       }
 
-      if (!pickDropData.senderContact) {
-        return ctx.badRequest('Sender contact is required');
+      if (!pickDropData.senderPhoneNumber) {
+        return ctx.badRequest('Sender phone number is required');
       }
 
       if (!pickDropData.receiverName) {
         return ctx.badRequest('Receiver name is required');
       }
 
-      if (!pickDropData.receiverContact) {
-        return ctx.badRequest('Receiver contact is required');
+      if (!pickDropData.receiverPhoneNumber) {
+        return ctx.badRequest('Receiver phone number is required');
       }
 
       if (!pickDropData.itemDescription) {
         return ctx.badRequest('Item description is required');
       }
 
-      if (!pickDropData.itemWeight) {
+      if (!pickDropData.itemWeightKg) {
         return ctx.badRequest('Item weight is required');
       }
 
-      // Handle image uploads if provided
-      let uploadedImageIds = [];
-      if (files && files.images) {
+      // Handle image upload if provided
+      let uploadedImageId = null;
+      if (files && files.itemImage) {
         try {
-          console.log(`📷 Processing image uploads...`);
+          console.log(`📷 Processing image upload...`);
 
-          // Ensure images is always an array
-          const imageFiles = Array.isArray(files.images) ? files.images : [files.images];
+          const imageFile = files.itemImage;
+          const fileName = (imageFile as any).name || (imageFile as any).originalFilename || 'unnamed file';
+          console.log(`   Uploading: ${fileName}`);
 
-          // Upload each image
-          for (const imageFile of imageFiles) {
-            const fileName = (imageFile as any).name || (imageFile as any).originalFilename || 'unnamed file';
-            console.log(`   Uploading: ${fileName}`);
+          // Upload file using Strapi's upload service
+          const uploadedFiles = await strapi.plugins.upload.services.upload.upload({
+            data: {
+              refId: null,
+              ref: null,
+              field: null,
+            },
+            files: imageFile,
+          });
 
-            // Upload file using Strapi's upload service
-            const uploadedFiles = await strapi.plugins.upload.services.upload.upload({
-              data: {
-                refId: null,
-                ref: null,
-                field: null,
-              },
-              files: imageFile,
-            });
-
-            // Add uploaded file ID to array
-            if (uploadedFiles && uploadedFiles.length > 0) {
-              uploadedImageIds.push(uploadedFiles[0].id);
-              console.log(`   ✅ Uploaded: ${uploadedFiles[0].name} (ID: ${uploadedFiles[0].id})`);
-            }
+          // Get uploaded file ID
+          if (uploadedFiles && uploadedFiles.length > 0) {
+            uploadedImageId = uploadedFiles[0].id;
+            console.log(`   ✅ Uploaded: ${uploadedFiles[0].name} (ID: ${uploadedFiles[0].id})`);
           }
 
-          console.log(`✅ Successfully uploaded ${uploadedImageIds.length} images`);
+          console.log(`✅ Successfully uploaded image`);
         } catch (uploadError) {
           console.error('Error uploading images:', uploadError);
           return ctx.badRequest('Error uploading images. Please try again.');
         }
       }
 
-      // Parse location components if provided as JSON strings
-      let pickupLocation = null;
-      let dropoffLocation = null;
-
-      if (pickDropData.pickupLocation) {
-        try {
-          pickupLocation = typeof pickDropData.pickupLocation === 'string'
-            ? JSON.parse(pickDropData.pickupLocation)
-            : pickDropData.pickupLocation;
-        } catch (error) {
-          console.warn('Invalid pickupLocation JSON:', error);
-        }
-      }
-
-      if (pickDropData.dropoffLocation) {
-        try {
-          dropoffLocation = typeof pickDropData.dropoffLocation === 'string'
-            ? JSON.parse(pickDropData.dropoffLocation)
-            : pickDropData.dropoffLocation;
-        } catch (error) {
-          console.warn('Invalid dropoffLocation JSON:', error);
-        }
-      }
-
       // Prepare data for service with proper field mapping
       const serviceData = {
         senderName: pickDropData.senderName,
-        senderContact: pickDropData.senderContact,
+        senderPhoneNumber: pickDropData.senderPhoneNumber,
         receiverName: pickDropData.receiverName,
-        receiverContact: pickDropData.receiverContact,
+        receiverPhoneNumber: pickDropData.receiverPhoneNumber,
         itemDescription: pickDropData.itemDescription,
-        itemWeight: parseFloat(pickDropData.itemWeight) || 0,
-        preferredPickupTime: pickDropData.preferredPickupTime,
+        itemWeightKg: parseFloat(pickDropData.itemWeightKg) || 0,
+        pickupDateTime: pickDropData.pickupDateTime,
+        pickupAddress: pickDropData.pickupAddress,
+        dropOffLocation: pickDropData.dropOffLocation,
+        dropOffDateTime: pickDropData.dropOffDateTime,
+        dropOffAddress: pickDropData.dropOffAddress,
         deliveryType: pickDropData.deliveryType || 'Standard',
         scheduledDateTime: pickDropData.scheduledDateTime,
         senderAddressLine1: pickDropData.senderAddressLine1,
         senderAddressLine2: pickDropData.senderAddressLine2,
         receiverAddressLine1: pickDropData.receiverAddressLine1,
         receiverAddressLine2: pickDropData.receiverAddressLine2,
-        pickupLocation,
-        dropoffLocation,
-        images: uploadedImageIds,
+        pickupLocation: pickDropData.pickupLocation,
+        itemImage: uploadedImageId,
       };
 
       console.log(`   Prepared service data:`, {
         ...serviceData,
-        images: `${uploadedImageIds.length} images uploaded`
+        itemImage: uploadedImageId ? 'Image uploaded' : 'No image'
       });
 
       // Create the pick-drop request
@@ -397,91 +371,69 @@ export default factories.createCoreController('api::pick-drop.pick-drop', ({ str
         receiverName: updateData.receiverName,
         itemDescription: updateData.itemDescription,
         deliveryType: updateData.deliveryType,
-        hasFiles: files && files.images ? (Array.isArray(files.images) ? files.images.length : 1) : 0
+        hasFiles: files && files.itemImage ? 1 : 0
       });
 
-      // Handle image uploads if provided
-      let uploadedImageIds = [];
-      if (files && files.images) {
+      // Handle image upload if provided
+      let uploadedImageId = null;
+      if (files && files.itemImage) {
         try {
-          console.log(`📷 Processing image uploads for update...`);
+          console.log(`📷 Processing image upload for update...`);
 
-          // Ensure images is always an array
-          const imageFiles = Array.isArray(files.images) ? files.images : [files.images];
+          const imageFile = files.itemImage;
+          const fileName = (imageFile as any).name || (imageFile as any).originalFilename || 'unnamed file';
+          console.log(`   Uploading: ${fileName}`);
 
-          // Upload each image
-          for (const imageFile of imageFiles) {
-            const fileName = (imageFile as any).name || (imageFile as any).originalFilename || 'unnamed file';
-            console.log(`   Uploading: ${fileName}`);
+          // Upload file using Strapi's upload service
+          const uploadedFiles = await strapi.plugins.upload.services.upload.upload({
+            data: {
+              refId: null,
+              ref: null,
+              field: null,
+            },
+            files: imageFile,
+          });
 
-            // Upload file using Strapi's upload service
-            const uploadedFiles = await strapi.plugins.upload.services.upload.upload({
-              data: {
-                refId: null,
-                ref: null,
-                field: null,
-              },
-              files: imageFile,
-            });
-
-            // Add uploaded file ID to array
-            if (uploadedFiles && uploadedFiles.length > 0) {
-              uploadedImageIds.push(uploadedFiles[0].id);
-              console.log(`   ✅ Uploaded: ${uploadedFiles[0].name} (ID: ${uploadedFiles[0].id})`);
-            }
+          // Get uploaded file ID
+          if (uploadedFiles && uploadedFiles.length > 0) {
+            uploadedImageId = uploadedFiles[0].id;
+            console.log(`   ✅ Uploaded: ${uploadedFiles[0].name} (ID: ${uploadedFiles[0].id})`);
           }
 
-          console.log(`✅ Successfully uploaded ${uploadedImageIds.length} new images`);
+          console.log(`✅ Successfully uploaded new image`);
         } catch (uploadError) {
-          console.error('Error uploading images:', uploadError);
-          return ctx.badRequest('Error uploading images. Please try again.');
+          console.error('Error uploading image:', uploadError);
+          return ctx.badRequest('Error uploading image. Please try again.');
         }
       }
 
-      // Parse location components if provided as JSON strings
-      let pickupLocation = null;
-      let dropoffLocation = null;
+      // Prepare update data for service - only include fields that are provided
+      const serviceUpdateData: any = {};
 
-      if (updateData.pickupLocation) {
-        try {
-          pickupLocation = typeof updateData.pickupLocation === 'string'
-            ? JSON.parse(updateData.pickupLocation)
-            : updateData.pickupLocation;
-        } catch (error) {
-          console.warn('Invalid pickupLocation JSON:', error);
-        }
+      // Only add fields that are provided in the update
+      if (updateData.senderName !== undefined) serviceUpdateData.senderName = updateData.senderName;
+      if (updateData.senderPhoneNumber !== undefined) serviceUpdateData.senderPhoneNumber = updateData.senderPhoneNumber;
+      if (updateData.receiverName !== undefined) serviceUpdateData.receiverName = updateData.receiverName;
+      if (updateData.receiverPhoneNumber !== undefined) serviceUpdateData.receiverPhoneNumber = updateData.receiverPhoneNumber;
+      if (updateData.itemDescription !== undefined) serviceUpdateData.itemDescription = updateData.itemDescription;
+      if (updateData.itemWeightKg !== undefined) serviceUpdateData.itemWeightKg = parseFloat(updateData.itemWeightKg);
+      if (updateData.pickupDateTime !== undefined) serviceUpdateData.pickupDateTime = updateData.pickupDateTime;
+      if (updateData.pickupAddress !== undefined) serviceUpdateData.pickupAddress = updateData.pickupAddress;
+      if (updateData.dropOffLocation !== undefined) serviceUpdateData.dropOffLocation = updateData.dropOffLocation;
+      if (updateData.dropOffDateTime !== undefined) serviceUpdateData.dropOffDateTime = updateData.dropOffDateTime;
+      if (updateData.dropOffAddress !== undefined) serviceUpdateData.dropOffAddress = updateData.dropOffAddress;
+      if (updateData.deliveryType !== undefined) serviceUpdateData.deliveryType = updateData.deliveryType;
+      if (updateData.scheduledDateTime !== undefined) serviceUpdateData.scheduledDateTime = updateData.scheduledDateTime;
+      if (updateData.senderAddressLine1 !== undefined) serviceUpdateData.senderAddressLine1 = updateData.senderAddressLine1;
+      if (updateData.senderAddressLine2 !== undefined) serviceUpdateData.senderAddressLine2 = updateData.senderAddressLine2;
+      if (updateData.receiverAddressLine1 !== undefined) serviceUpdateData.receiverAddressLine1 = updateData.receiverAddressLine1;
+      if (updateData.receiverAddressLine2 !== undefined) serviceUpdateData.receiverAddressLine2 = updateData.receiverAddressLine2;
+      if (updateData.pickupLocation !== undefined) serviceUpdateData.pickupLocation = updateData.pickupLocation;
+
+      // Only include image if a new one was uploaded
+      if (uploadedImageId) {
+        serviceUpdateData.itemImage = uploadedImageId;
       }
-
-      if (updateData.dropoffLocation) {
-        try {
-          dropoffLocation = typeof updateData.dropoffLocation === 'string'
-            ? JSON.parse(updateData.dropoffLocation)
-            : updateData.dropoffLocation;
-        } catch (error) {
-          console.warn('Invalid dropoffLocation JSON:', error);
-        }
-      }
-
-      // Prepare update data for service
-      const serviceUpdateData = {
-        senderName: updateData.senderName,
-        senderContact: updateData.senderContact,
-        receiverName: updateData.receiverName,
-        receiverContact: updateData.receiverContact,
-        itemDescription: updateData.itemDescription,
-        itemWeight: updateData.itemWeight ? parseFloat(updateData.itemWeight) : undefined,
-        preferredPickupTime: updateData.preferredPickupTime,
-        deliveryType: updateData.deliveryType,
-        scheduledDateTime: updateData.scheduledDateTime,
-        senderAddressLine1: updateData.senderAddressLine1,
-        senderAddressLine2: updateData.senderAddressLine2,
-        receiverAddressLine1: updateData.receiverAddressLine1,
-        receiverAddressLine2: updateData.receiverAddressLine2,
-        pickupLocation,
-        dropoffLocation,
-        // Only include images if new ones were uploaded
-        ...(uploadedImageIds.length > 0 && { images: uploadedImageIds }),
-      };
 
       // Remove undefined values
       Object.keys(serviceUpdateData).forEach(key => {
@@ -492,7 +444,7 @@ export default factories.createCoreController('api::pick-drop.pick-drop', ({ str
 
       console.log(`   Prepared update data:`, {
         ...serviceUpdateData,
-        images: uploadedImageIds.length > 0 ? `${uploadedImageIds.length} new images` : 'no new images'
+        itemImage: uploadedImageId ? 'New image uploaded' : 'No new image'
       });
 
       const updatedPickDrop = await strapi.service('api::pick-drop.pick-drop').updatePickDropRequest(

@@ -14,34 +14,46 @@
     "senderName": {
       "type": "string"
     },
-    "senderContact": {
+    "senderPhoneNumber": {
       "type": "string"
     },
     "receiverName": {
       "type": "string"
     },
-    "receiverContact": {
+    "receiverPhoneNumber": {
       "type": "string"
     },
     "itemDescription": {
       "type": "text"
     },
-    "itemWeight": {
+    "itemWeightKg": {
       "type": "decimal"
     },
-    "images": {
+    "itemImage": {
       "type": "media",
-      "multiple": true,
+      "multiple": false,
       "required": false,
       "allowedTypes": [
-        "images",
-        "files",
-        "videos",
-        "audios"
+        "images"
       ]
     },
-    "preferredPickupTime": {
+    "pickupLocation": {
+      "type": "string"
+    },
+    "pickupDateTime": {
       "type": "datetime"
+    },
+    "pickupAddress": {
+      "type": "string"
+    },
+    "dropOffLocation": {
+      "type": "string"
+    },
+    "dropOffDateTime": {
+      "type": "datetime"
+    },
+    "dropOffAddress": {
+      "type": "string"
     },
     "pickDropStatus": {
       "type": "enumeration",
@@ -100,16 +112,6 @@
       "type": "relation",
       "relation": "manyToOne",
       "target": "plugin::users-permissions.user"
-    },
-    "pickupLocation": {
-      "type": "component",
-      "repeatable": false,
-      "component": "address.address"
-    },
-    "dropoffLocation": {
-      "type": "component",
-      "repeatable": false,
-      "component": "address.address"
     },
     "senderAddressLine1": {
       "type": "string"
