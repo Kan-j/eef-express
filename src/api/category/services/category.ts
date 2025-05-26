@@ -16,7 +16,7 @@ export default factories.createCoreService('api::category.category', ({ strapi }
       // Find all categories
       const categories = await strapi.entityService.findMany('api::category.category', {
         sort,
-        populate: params.withProducts ? ['products', 'products.images'] : [],
+        populate: params.withProducts ? ['image', 'products', 'products.images'] : ['image'],
       });
 
       return categories;
@@ -34,7 +34,7 @@ export default factories.createCoreService('api::category.category', ({ strapi }
       // Find all categories
       const categories = await strapi.entityService.findMany('api::category.category', {
         sort: 'displayOrder:asc,name:asc',
-        populate: ['products'],
+        populate: ['image', 'products'],
       });
 
       // Add product count to each category
