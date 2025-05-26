@@ -460,10 +460,11 @@ export default factories.createCoreService('api::order.order', ({ strapi }) => (
         {
           shippingAddress: {
             $or: [
-              { firstName: { $containsi: search } },
-              { lastName: { $containsi: search } },
-              { email: { $containsi: search } },
-              { phone: { $containsi: search } },
+              { name: { $containsi: search } },
+              { addressLine1: { $containsi: search } },
+              { addressLine2: { $containsi: search } },
+              { phoneNumber: { $containsi: search } },
+              { emirate: { $containsi: search } },
             ]
           }
         },

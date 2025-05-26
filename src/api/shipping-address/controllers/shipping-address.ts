@@ -15,7 +15,7 @@ export default {
       }
 
       const addresses = await strapi.service('api::shipping-address.shipping-address').getUserAddresses(user.id);
-      
+
       return { data: addresses };
     } catch (error) {
       console.error('Error getting user addresses:', error);
@@ -37,7 +37,7 @@ export default {
 
       // Validate required fields
       const validationErrors = [];
-      
+
       if (!addressData.name) {
         validationErrors.push('Name is required');
       }
@@ -46,6 +46,9 @@ export default {
       }
       if (!addressData.emirate) {
         validationErrors.push('Emirate is required');
+      }
+      if (!addressData.phoneNumber) {
+        validationErrors.push('Phone number is required');
       }
 
       if (validationErrors.length > 0) {
@@ -56,7 +59,7 @@ export default {
       }
 
       const address = await strapi.service('api::shipping-address.shipping-address').addUserAddress(user.id, addressData);
-      
+
       return { data: address };
     } catch (error) {
       console.error('Error adding address:', error);
@@ -82,7 +85,7 @@ export default {
       }
 
       const address = await strapi.service('api::shipping-address.shipping-address').updateUserAddress(user.id, parseInt(id), addressData);
-      
+
       return { data: address };
     } catch (error) {
       if (error.message === 'Address not found') {
@@ -110,7 +113,7 @@ export default {
       }
 
       await strapi.service('api::shipping-address.shipping-address').deleteUserAddress(user.id, parseInt(id));
-      
+
       return { data: { message: 'Address deleted successfully' } };
     } catch (error) {
       if (error.message === 'Address not found') {

@@ -22,6 +22,7 @@ export interface AddressAddress extends Struct.ComponentSchema {
       ]
     >;
     name: Schema.Attribute.String;
+    phoneNumber: Schema.Attribute.String;
   };
 }
 

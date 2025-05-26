@@ -25,6 +25,7 @@ export default {
         addressLine2: address.addressLine2,
         apartmentOrVilla: address.apartmentOrVilla,
         emirate: address.emirate,
+        phoneNumber: address.phoneNumber,
       }));
     } catch (error) {
       console.error('Error getting user addresses:', error);
@@ -53,6 +54,7 @@ export default {
         addressLine2: addressData.addressLine2 || '',
         apartmentOrVilla: addressData.apartmentOrVilla || '',
         emirate: addressData.emirate,
+        phoneNumber: addressData.phoneNumber || '',
       };
 
       // Add new address to existing addresses
@@ -107,6 +109,7 @@ export default {
         addressLine2: addressData.addressLine2 !== undefined ? addressData.addressLine2 : currentAddresses[addressIndex].addressLine2,
         apartmentOrVilla: addressData.apartmentOrVilla !== undefined ? addressData.apartmentOrVilla : currentAddresses[addressIndex].apartmentOrVilla,
         emirate: addressData.emirate || currentAddresses[addressIndex].emirate,
+        phoneNumber: addressData.phoneNumber !== undefined ? addressData.phoneNumber : currentAddresses[addressIndex].phoneNumber,
       };
 
       // Replace the address at the specific index

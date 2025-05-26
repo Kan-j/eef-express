@@ -29,7 +29,9 @@
     },
     "name": {
       "type": "string"
+    },
+    "phoneNumber": {
+      "type": "string"
     }
   }
 }
-

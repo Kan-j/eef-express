@@ -63,6 +63,9 @@ export default {
         if (!checkoutData.shippingAddress.emirate) {
           validationErrors.push('Shipping address emirate is required');
         }
+        if (!checkoutData.shippingAddress.phoneNumber) {
+          validationErrors.push('Shipping address phone number is required');
+        }
       }
 
       // If scheduled delivery, validate date

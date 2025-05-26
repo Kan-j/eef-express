@@ -334,7 +334,7 @@ export default {
         const product = item.product || {};
         const productName = product.title || product.name || `Product ${product.id || index + 1}`;
         const productPrice = product.price || 0;
-        const productDescription = product.description || '';
+        const productDescription = product.description;
 
         console.log(`   Adding item: ${productName} x${item.quantity} @ $${productPrice}`);
 
@@ -352,10 +352,15 @@ export default {
             currency: 'aed', // UAE Dirham
             product_data: {
               name: productName,
-              description: productDescription,
+              // Only include description if it has a valid non-empty value
+              ...(productDescription && productDescription.trim() && {
+                description: productDescription
+              }),
               // Only include images if they exist and have valid URLs
               ...(product.images && product.images.length > 0 && product.images[0]?.url && {
-                images: [`${process.env.FRONTEND_URL || 'http://localhost:1337'}${product.images[0].url}`]
+                images: [product.images[0].url.startsWith('http')
+                  ? product.images[0].url
+                  : `${process.env.FRONTEND_URL || 'http://localhost:1337'}${product.images[0].url}`]
               })
             },
             unit_amount: Math.round(productPrice * 100), // Convert to fils (cents)
