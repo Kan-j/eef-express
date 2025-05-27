@@ -10,17 +10,7 @@ export interface AddressAddress extends Struct.ComponentSchema {
     addressLine1: Schema.Attribute.Text;
     addressLine2: Schema.Attribute.Text;
     apartmentOrVilla: Schema.Attribute.String;
-    emirate: Schema.Attribute.Enumeration<
-      [
-        'Fujairah',
-        'Ras Al Khaimah',
-        'Umm Al-Quwain',
-        'Ajman',
-        'Sharjah',
-        'Dubai',
-        'Abu Dhabi',
-      ]
-    >;
+    emirate: Schema.Attribute.String;
     name: Schema.Attribute.String;
     phoneNumber: Schema.Attribute.String;
   };

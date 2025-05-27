@@ -15,22 +15,13 @@
     "apartmentOrVilla": {
       "type": "string"
     },
-    "emirate": {
-      "type": "enumeration",
-      "enum": [
-        "Fujairah",
-        "Ras Al Khaimah",
-        "Umm Al-Quwain",
-        "Ajman",
-        "Sharjah",
-        "Dubai",
-        "Abu Dhabi"
-      ]
-    },
     "name": {
       "type": "string"
     },
     "phoneNumber": {
+      "type": "string"
+    },
+    "emirate": {
       "type": "string"
     }
   }
