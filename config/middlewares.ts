@@ -1,4 +1,8 @@
 export default [
+    {
+    name: 'global::raw-body',
+    config: {},
+  },
   'strapi::logger',
   'strapi::errors',
   'strapi::security',
@@ -7,12 +11,7 @@ export default [
   'strapi::query',
   {
     name: 'strapi::body',
-    config: {
-      jsonLimit: '1mb',
-      formLimit: '1mb',
-      // Enable raw body parsing for webhook signature verification
-      includeUnparsed: true,
-    },
+    config: {},
   },
   {
     name: 'strapi::security',
@@ -34,7 +33,6 @@ export default [
       },
     },
   },
-  'global::raw-body', // 👈 Add raw body reader AFTER built-in body middleware
   'strapi::session',
   'strapi::favicon',
   'strapi::public',

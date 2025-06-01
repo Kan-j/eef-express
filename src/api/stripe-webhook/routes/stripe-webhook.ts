@@ -9,9 +9,11 @@ export default {
       path: '/stripe/webhook',
       handler: 'api::stripe-webhook.stripe-webhook.handleWebhook',
       config: {
+        auth: false,
         policies: [],
         middlewares: [],
-        auth: false, // Disable authentication for webhook
+        // Disable body parsing for this route
+        bodyParser: false,  // Disable automatic body parsing for this specific route
       },
     },
   ],
