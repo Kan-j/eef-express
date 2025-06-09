@@ -4,8 +4,7 @@
   "info": {
     "singularName": "product",
     "pluralName": "products",
-    "displayName": "Product",
-    "description": ""
+    "displayName": "Product"
   },
   "options": {
     "draftAndPublish": false
@@ -14,25 +13,44 @@
     "name": {
       "type": "string"
     },
-    "images": {
-      "type": "media",
-      "multiple": true,
-      "required": false,
-      "allowedTypes": [
-        "images",
-        "files",
-        "videos",
-        "audios"
-      ]
-    },
     "description": {
       "type": "text"
     },
     "price": {
       "type": "decimal"
     },
+    "original_price": {
+      "type": "decimal",
+      "description": "Original price before discount"
+    },
+    "discount_percentage": {
+      "type": "decimal",
+      "description": "Discount percentage (0-100)"
+    },
+    "on_sale": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the product is currently on sale"
+    },
+    "sale_start_date": {
+      "type": "datetime",
+      "description": "When the sale starts"
+    },
+    "sale_end_date": {
+      "type": "datetime",
+      "description": "When the sale ends"
+    },
     "stock": {
       "type": "integer"
+    },
+    "has_variations": {
+      "type": "boolean",
+      "default": false
+    },
+    "variations": {
+      "type": "component",
+      "repeatable": true,
+      "component": "product.variation"
     },
     "category": {
       "type": "relation",
@@ -40,13 +58,24 @@
       "target": "api::category.category",
       "inversedBy": "products"
     },
-    "ratings": {
-      "type": "decimal"
+    "images": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
     },
     "reviews": {
       "type": "relation",
       "relation": "oneToMany",
-      "target": "api::review.review"
+      "target": "api::review.review",
+      "mappedBy": "product"
+    },
+    "ratings": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Average rating calculated from reviews"
     }
   }
 }

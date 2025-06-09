@@ -9,7 +9,7 @@ export default factories.createCoreService('api::order.order', ({ strapi }) => (
    * Create a new order from cart
    */
   async createOrderFromCart(userId: number, orderData: any) {
-    // Get the user's cart
+    // Get the user's cart with variations populated
     const cartService = strapi.service('api::cart.cart');
     const cart = await cartService.getUserCart(userId);
 
@@ -52,13 +52,34 @@ export default factories.createCoreService('api::order.order', ({ strapi }) => (
       locationNote: 'Order received',
     };
 
-    // Create the order with payment status
+    // Create the order with payment status and variation details
     const order = await strapi.entityService.create('api::order.order', {
       data: {
         users_permissions_user: userId,
-        products: cart.item.map((item: any) => ({
-          product: item.product.id,
-          quantity: item.quantity,
+        products: await Promise.all(cart.item.map(async (item: any) => {
+          const orderItem: any = {
+            product: item.product.id,
+            quantity: item.quantity,
+            variation_id: item.variation_id || null,
+          };
+
+          // If item has a variation, get and store the variation details
+          if (item.variation_id && item.product.variations) {
+            const variation = item.product.variations.find((v: any) => v.id === item.variation_id);
+            if (variation) {
+              orderItem.variation_details = {
+                size: variation.size,
+                color: variation.color,
+                sku: variation.sku,
+                price_adjustment: variation.price_adjustment,
+                original_price_adjustment: variation.original_price_adjustment,
+                on_sale: variation.on_sale,
+                stock_at_time_of_order: variation.stock, // Snapshot of stock level
+              };
+            }
+          }
+
+          return orderItem;
         })),
         deliveryType: orderData.deliveryType,
         deliveryFee,

@@ -92,9 +92,14 @@ export default {
       // Process checkout
       const result = await strapi.service('api::checkout.checkout').processCheckout(user.id, checkoutData);
 
+      console.log(`🔍 Checkout service result:`, JSON.stringify(result, null, 2));
+
       if (!result.success) {
         console.error(`❌ Checkout service returned failure:`, result.error);
-        return ctx.badRequest(result.error);
+        return ctx.badRequest({
+          message: result.error || 'Checkout failed',
+          details: result
+        });
       }
 
       console.log(`✅ Checkout service completed successfully`);

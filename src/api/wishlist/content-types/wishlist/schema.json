@@ -16,10 +16,10 @@
       "target": "plugin::users-permissions.user",
       "inversedBy": "wishlist"
     },
-    "products": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::product.product"
+    "item": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.items"
     }
   }
 }

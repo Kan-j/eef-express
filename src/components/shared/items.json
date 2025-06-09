@@ -13,6 +13,13 @@
     },
     "quantity": {
       "type": "integer"
+    },
+    "variation_id": {
+      "type": "string"
+    },
+    "variation_details": {
+      "type": "json",
+      "description": "Snapshot of variation details at time of order (size, color, sku, price_adjustment)"
     }
   }
 }

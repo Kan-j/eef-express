@@ -30,36 +30,50 @@ export default factories.createCoreController('api::cart.cart', ({ strapi }) => 
   async addItem(ctx) {
     try {
       const { user } = ctx.state;
-      const { productId, quantity = 1 } = ctx.request.body;
+      const { productId, quantity, variationId } = ctx.request.body;
 
       if (!user) {
-        return ctx.unauthorized('You must be logged in');
+        return ctx.unauthorized('You must be logged in to add items to cart');
       }
 
-      if (!productId) {
-        return ctx.badRequest('Product ID is required');
+      if (!productId || !quantity) {
+        return ctx.badRequest('Product ID and quantity are required');
       }
 
       try {
         const cart = await strapi.service('api::cart.cart').addItem(
           user.id,
           parseInt(productId),
-          parseInt(quantity)
+          parseInt(quantity),
+          variationId // Service will handle string conversion
         );
 
         return this.transformResponse(cart);
       } catch (serviceError) {
-        // Handle specific errors from the service
-        if (serviceError.message.includes('not found')) {
-          return ctx.notFound(serviceError.message);
-        } else if (serviceError.message.includes('not available')) {
-          return ctx.badRequest(serviceError.message);
-        } else if (serviceError.message.includes('stock') || serviceError.message.includes('quantity')) {
-          return ctx.badRequest(serviceError.message);
+        // Handle specific errors from the service with proper status codes
+        const errorMessage = serviceError.message || 'Unknown error';
+
+        if (errorMessage.includes('not found') || errorMessage.includes('Product not found')) {
+          return ctx.notFound(errorMessage);
+        } else if (errorMessage.includes('not available') || errorMessage.includes('not published')) {
+          return ctx.badRequest(errorMessage);
+        } else if (errorMessage.includes('stock') ||
+                   errorMessage.includes('quantity') ||
+                   errorMessage.includes('available') ||
+                   errorMessage.includes('items') ||
+                   errorMessage.includes('variation')) {
+          // This should catch stock-related errors including "Only X items available in this variation"
+          // These are expected user errors, so we don't need to log them as errors
+          return ctx.badRequest(errorMessage);
+        } else if (errorMessage.includes('Variation ID is required')) {
+          return ctx.badRequest(errorMessage);
+        } else if (errorMessage.includes('must be a `string` type') || errorMessage.includes('variation_id')) {
+          // Handle schema validation errors for variation_id
+          return ctx.badRequest('Variation ID must be provided as a string');
         } else {
-          // Log the error for debugging
-          console.error('Error in addItem service:', serviceError);
-          throw serviceError;
+          // For any other service errors, log and return a generic bad request instead of 500
+          console.error('Unhandled service error in addItem:', serviceError.message);
+          return ctx.badRequest('Unable to add item to cart. Please try again.');
         }
       }
     } catch (error) {
@@ -75,6 +89,7 @@ export default factories.createCoreController('api::cart.cart', ({ strapi }) => 
     try {
       const { user } = ctx.state;
       const { productId } = ctx.params;
+      const { variationId } = ctx.query;
 
       if (!user) {
         return ctx.unauthorized('You must be logged in');
@@ -85,15 +100,23 @@ export default factories.createCoreController('api::cart.cart', ({ strapi }) => 
       }
 
       try {
-        const cart = await strapi.service('api::cart.cart').removeItem(
+        const cart = await strapi.service('api::cart.cart').removeSpecificItem(
           user.id,
-          parseInt(productId)
+          parseInt(productId),
+          variationId
         );
 
         return this.transformResponse(cart);
       } catch (serviceError) {
-        console.error('Error in removeItem service:', serviceError);
-        ctx.throw(500, 'An error occurred while removing the item from cart');
+        // Handle specific errors from the service
+        const errorMessage = serviceError.message || 'Unknown error';
+
+        if (errorMessage.includes('not found')) {
+          return ctx.notFound(errorMessage);
+        } else {
+          console.error('Unhandled service error in removeItem:', serviceError.message);
+          return ctx.badRequest('Unable to remove item from cart. Please try again.');
+        }
       }
     } catch (error) {
       console.error('Unhandled error in removeItem controller:', error);
@@ -108,7 +131,7 @@ export default factories.createCoreController('api::cart.cart', ({ strapi }) => 
     try {
       const { user } = ctx.state;
       const { productId } = ctx.params;
-      const { quantity } = ctx.request.body;
+      const { quantity, variationId } = ctx.request.body;
 
       if (!user) {
         return ctx.unauthorized('You must be logged in');
@@ -126,20 +149,30 @@ export default factories.createCoreController('api::cart.cart', ({ strapi }) => 
         const cart = await strapi.service('api::cart.cart').updateItemQuantity(
           user.id,
           parseInt(productId),
-          parseInt(quantity)
+          parseInt(quantity),
+          variationId // Pass variationId to service
         );
 
         return this.transformResponse(cart);
       } catch (serviceError) {
         // Handle specific errors from the service
-        if (serviceError.message.includes('not found')) {
-          return ctx.notFound(serviceError.message);
-        } else if (serviceError.message.includes('stock') || serviceError.message.includes('quantity')) {
-          return ctx.badRequest(serviceError.message);
+        const errorMessage = serviceError.message || 'Unknown error';
+
+        if (errorMessage.includes('not found') || errorMessage.includes('Item not found')) {
+          return ctx.notFound(errorMessage);
+        } else if (errorMessage.includes('stock') ||
+                   errorMessage.includes('quantity') ||
+                   errorMessage.includes('available') ||
+                   errorMessage.includes('items') ||
+                   errorMessage.includes('variation')) {
+          // These are expected user errors, no need to log as errors
+          return ctx.badRequest(errorMessage);
+        } else if (errorMessage.includes('not available') || errorMessage.includes('not published')) {
+          return ctx.badRequest(errorMessage);
         } else {
-          // Log the error for debugging
-          console.error('Error in updateItemQuantity controller:', serviceError);
-          throw serviceError;
+          // For any other service errors, log and return a generic bad request instead of 500
+          console.error('Unhandled service error in updateItemQuantity:', serviceError.message);
+          return ctx.badRequest('Unable to update cart item. Please try again.');
         }
       }
     } catch (error) {
@@ -163,7 +196,8 @@ export default factories.createCoreController('api::cart.cart', ({ strapi }) => 
 
       return this.transformResponse(cart);
     } catch (error) {
-      ctx.throw(500, error);
+      console.error('Error in clearCart:', error);
+      ctx.throw(500, 'An error occurred while clearing the cart');
     }
   },
 
@@ -182,7 +216,8 @@ export default factories.createCoreController('api::cart.cart', ({ strapi }) => 
 
       return this.transformResponse(totals);
     } catch (error) {
-      ctx.throw(500, error);
+      console.error('Error in getCartTotals:', error);
+      ctx.throw(500, 'An error occurred while calculating cart totals');
     }
   },
 
@@ -201,10 +236,15 @@ export default factories.createCoreController('api::cart.cart', ({ strapi }) => 
 
       return this.transformResponse(validationResults);
     } catch (error) {
-      if (error.message === 'Cart is empty') {
-        return ctx.badRequest(error.message);
+      console.error('Error in validateCart:', error);
+
+      const errorMessage = error.message || 'Unknown error';
+      if (errorMessage === 'Cart is empty') {
+        return ctx.badRequest(errorMessage);
+      } else if (errorMessage.includes('stock') || errorMessage.includes('available')) {
+        return ctx.badRequest(errorMessage);
       }
-      ctx.throw(500, error);
+      ctx.throw(500, 'An error occurred while validating the cart');
     }
   },
 
@@ -217,7 +257,8 @@ export default factories.createCoreController('api::cart.cart', ({ strapi }) => 
 
       return this.transformResponse(deliveryOptions);
     } catch (error) {
-      ctx.throw(500, error);
+      console.error('Error in getDeliveryOptions:', error);
+      ctx.throw(500, 'An error occurred while fetching delivery options');
     }
   },
 }));

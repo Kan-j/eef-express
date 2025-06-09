@@ -230,9 +230,16 @@ export default {
       }
     } catch (error) {
       console.error(`💥 CHECKOUT FAILED for user ${userId}:`, error.message);
+      console.error(`💥 Error stack:`, error.stack);
+      console.error(`💥 Error details:`, error);
       return {
         success: false,
         error: error.message,
+        errorDetails: {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        }
       };
     }
   },
@@ -325,18 +332,43 @@ export default {
         throw new Error('SUCCESS_URL and CANCEL_URL must be configured');
       }
 
-      // Prepare line items for Stripe (products only)
+      // Prepare line items for Stripe with variation support
       const lineItems = cartItems.map((item: any, index: number) => {
         // Debug the item structure
         console.log(`   Item ${index + 1} structure:`, JSON.stringify(item, null, 2));
 
         // Extract product data with fallbacks
         const product = item.product || {};
-        const productName = product.title || product.name || `Product ${product.id || index + 1}`;
-        const productPrice = product.price || 0;
+        let productName = product.title || product.name || `Product ${product.id || index + 1}`;
+
+        // Calculate product price considering discounts
+        const cartService = strapi.service('api::cart.cart');
+        let productPrice = cartService.calculateProductPrice(product);
         const productDescription = product.description;
 
-        console.log(`   Adding item: ${productName} x${item.quantity} @ $${productPrice}`);
+        // Handle variation details and pricing (considering variation sales)
+        let variationInfo = '';
+        if (item.variation_id && item.variation_details) {
+          const variation = item.variation_details;
+
+          // Add variation details to product name
+          const variationParts = [];
+          if (variation.size) variationParts.push(variation.size);
+          if (variation.color) variationParts.push(variation.color);
+          if (variationParts.length > 0) {
+            variationInfo = ` (${variationParts.join(', ')})`;
+            productName += variationInfo;
+          }
+
+          // Add variation price adjustment (considering variation sales)
+          const cartService = strapi.service('api::cart.cart');
+          const adjustment = cartService.calculateVariationPriceAdjustment(variation);
+          productPrice += adjustment;
+
+          console.log(`   Variation adjustment: +$${adjustment} for ${variationParts.join(', ')} ${variation.on_sale ? '(on sale)' : ''}`);
+        }
+
+        console.log(`   Adding item: ${productName} x${item.quantity} @ $${productPrice.toFixed(2)}`);
 
         // Validate required fields
         if (!productName) {
@@ -347,23 +379,38 @@ export default {
           throw new Error(`Invalid product price for item: ${productName}`);
         }
 
+        // Prepare description - only include if not empty
+        let description = '';
+        if (item.variation_details && item.variation_details.sku) {
+          // For items with variations, include SKU
+          description = productDescription
+            ? `${productDescription} (SKU: ${item.variation_details.sku})`
+            : `SKU: ${item.variation_details.sku}`;
+        } else if (productDescription && productDescription.trim()) {
+          // For items without variations, use product description if available
+          description = productDescription.trim();
+        }
+
+        const productData: any = {
+          name: productName,
+          // Only include images if they exist and have valid URLs
+          ...(product.images && product.images.length > 0 && product.images[0]?.url && {
+            images: [product.images[0].url.startsWith('http')
+              ? product.images[0].url
+              : `${process.env.FRONTEND_URL || 'http://localhost:1337'}${product.images[0].url}`]
+          })
+        };
+
+        // Only add description if it's not empty
+        if (description) {
+          productData.description = description;
+        }
+
         return {
           price_data: {
             currency: 'aed', // UAE Dirham
-            product_data: {
-              name: productName,
-              // Only include description if it has a valid non-empty value
-              ...(productDescription && productDescription.trim() && {
-                description: productDescription
-              }),
-              // Only include images if they exist and have valid URLs
-              ...(product.images && product.images.length > 0 && product.images[0]?.url && {
-                images: [product.images[0].url.startsWith('http')
-                  ? product.images[0].url
-                  : `${process.env.FRONTEND_URL || 'http://localhost:1337'}${product.images[0].url}`]
-              })
-            },
-            unit_amount: Math.round(productPrice * 100), // Convert to fils (cents)
+            product_data: productData,
+            unit_amount: Math.round(productPrice * 100), // Convert to fils (cents) - includes variation adjustment
           },
           quantity: item.quantity || 1,
         };
@@ -527,19 +574,90 @@ export default {
     // Get all available delivery options
     const deliveryOptions = await cartService.getDeliveryOptions();
 
-    // Format cart items for the response
-    const items = cart && cart.item ? cart.item.map((item: any) => ({
-      id: item.id,
-      product: {
-        id: item.product.id,
-        title: item.product.title,
-        price: item.product.price,
-        images: item.product.images,
-        slug: item.product.slug,
-      },
-      quantity: item.quantity,
-      subtotal: parseFloat((item.product.price * item.quantity).toFixed(2))
-    })) : [];
+    // Format cart items for the response with variation details and proper pricing
+    const items = cart && cart.item ? cart.item.map((item: any) => {
+      // Calculate item price including discounts and variation adjustments
+      const cartService = strapi.service('api::cart.cart');
+      let itemPrice = cartService.calculateProductPrice(item.product);
+
+      let priceBreakdown: any = {
+        originalPrice: parseFloat(item.product.original_price || item.product.price || 0),
+        discountedPrice: parseFloat(item.product.price || 0),
+        effectivePrice: itemPrice,
+        variationAdjustment: 0,
+        finalPrice: itemPrice,
+        isOnSale: item.product.on_sale || false,
+        discountPercentage: item.product.discount_percentage || null
+      };
+
+      // Add variation price adjustment if item has a variation (considering variation sales)
+      if (item.variation_id && item.variation_details) {
+        const cartService = strapi.service('api::cart.cart');
+        const variationAdjustment = cartService.calculateVariationPriceAdjustment(item.variation_details);
+
+        // Enhanced variation breakdown
+        priceBreakdown.variationOriginalAdjustment = parseFloat(item.variation_details.original_price_adjustment || item.variation_details.price_adjustment || 0);
+        priceBreakdown.variationCurrentAdjustment = parseFloat(item.variation_details.price_adjustment || 0);
+        priceBreakdown.variationEffectiveAdjustment = variationAdjustment;
+        priceBreakdown.variationOnSale = item.variation_details.on_sale || false;
+        priceBreakdown.variationAdjustment = variationAdjustment; // For backward compatibility
+
+        priceBreakdown.finalPrice = itemPrice + variationAdjustment;
+        itemPrice = priceBreakdown.finalPrice;
+      }
+
+      // Calculate item subtotal
+      const itemSubtotal = parseFloat((itemPrice * item.quantity).toFixed(2));
+
+      return {
+        id: item.id,
+        product: {
+          id: item.product.id,
+          name: item.product.name,
+          title: item.product.title,
+          price: item.product.price,
+          images: item.product.images,
+          slug: item.product.slug,
+        },
+        quantity: item.quantity,
+        variation_id: item.variation_id,
+        variation_details: item.variation_details ? {
+          size: item.variation_details.size,
+          color: item.variation_details.color,
+          sku: item.variation_details.sku,
+          price_adjustment: item.variation_details.price_adjustment,
+          original_price_adjustment: item.variation_details.original_price_adjustment,
+          on_sale: item.variation_details.on_sale,
+        } : null,
+        priceBreakdown,
+        unitPrice: itemPrice,
+        subtotal: itemSubtotal
+      };
+    }) : [];
+
+    // Calculate detailed pricing breakdown
+    const pricingBreakdown = {
+      itemsSubtotal: cartTotals.subtotal,
+      deliveryFee,
+      taxAmount: taxCalculation.taxAmount,
+      totalAmount: parseFloat(total.toFixed(2)),
+
+      // Detailed breakdown for transparency
+      breakdown: {
+        originalProductsTotal: items.reduce((sum, item) => sum + (item.priceBreakdown.originalPrice * item.quantity), 0),
+        discountsTotal: items.reduce((sum, item) => {
+          const originalTotal = item.priceBreakdown.originalPrice * item.quantity;
+          const effectiveTotal = item.priceBreakdown.effectivePrice * item.quantity;
+          return sum + (originalTotal - effectiveTotal);
+        }, 0),
+        effectiveProductsTotal: items.reduce((sum, item) => sum + (item.priceBreakdown.effectivePrice * item.quantity), 0),
+        variationAdjustmentsTotal: items.reduce((sum, item) => sum + (item.priceBreakdown.variationAdjustment * item.quantity), 0),
+        subtotalWithVariations: cartTotals.subtotal,
+        delivery: deliveryFee,
+        tax: taxCalculation.taxAmount,
+        grandTotal: parseFloat(total.toFixed(2))
+      }
+    };
 
     return {
       subtotal: cartTotals.subtotal,
@@ -551,7 +669,17 @@ export default {
       totalItems: cartTotals.totalItems,
       selectedDeliveryType: deliveryType,
       deliveryOptions,
-      items, // Include cart items in the response
+      items, // Include cart items with variation details
+      pricingBreakdown, // Detailed pricing explanation
+
+      // Summary explanation for frontend display
+      pricingExplanation: {
+        message: "Subtotal includes product prices (with discounts applied), plus any variation price adjustments",
+        calculation: `Original: $${pricingBreakdown.breakdown.originalProductsTotal.toFixed(2)} - Discounts: $${pricingBreakdown.breakdown.discountsTotal.toFixed(2)} + Variations: $${pricingBreakdown.breakdown.variationAdjustmentsTotal.toFixed(2)} = Subtotal: $${cartTotals.subtotal.toFixed(2)}`,
+        variationsIncluded: items.filter(item => item.variation_details).length > 0,
+        discountsApplied: pricingBreakdown.breakdown.discountsTotal > 0,
+        totalSavings: pricingBreakdown.breakdown.discountsTotal
+      }
     };
   },
 

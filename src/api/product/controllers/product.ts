@@ -99,5 +99,28 @@ export default factories.createCoreController('api::product.product', ({ strapi 
     } catch (error) {
       ctx.throw(500, error);
     }
+  },
+
+  /**
+   * Get products on sale
+   */
+  async getOnSale(ctx) {
+    try {
+      const { query } = ctx;
+      const limit = query.limit ? parseInt(query.limit as string) : 10;
+
+      // Add onSale=true to the query params
+      const params = {
+        ...query,
+        onSale: 'true',
+        limit
+      };
+
+      const data = await strapi.service('api::product.product').findProducts(params);
+
+      return this.transformResponse(data);
+    } catch (error) {
+      ctx.throw(500, error);
+    }
   }
 }));

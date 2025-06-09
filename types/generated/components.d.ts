@@ -70,6 +70,24 @@ export interface CustomStatusOfPickDrop extends Struct.ComponentSchema {
   attributes: {};
 }
 
+export interface ProductVariation extends Struct.ComponentSchema {
+  collectionName: 'components_product_variations';
+  info: {
+    description: 'Product variations like size, color, etc.';
+    displayName: 'Product Variation';
+  };
+  attributes: {
+    color: Schema.Attribute.String;
+    on_sale: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    original_price_adjustment: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<0>;
+    price_adjustment: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
+    size: Schema.Attribute.String;
+    sku: Schema.Attribute.String;
+    stock: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+  };
+}
+
 export interface SharedItems extends Struct.ComponentSchema {
   collectionName: 'components_shared_items';
   info: {
@@ -79,6 +97,8 @@ export interface SharedItems extends Struct.ComponentSchema {
   attributes: {
     product: Schema.Attribute.Relation<'oneToOne', 'api::product.product'>;
     quantity: Schema.Attribute.Integer;
+    variation_details: Schema.Attribute.JSON;
+    variation_id: Schema.Attribute.String;
   };
 }
 
@@ -101,6 +121,7 @@ declare module '@strapi/strapi' {
       'custom.order-status': CustomOrderStatus;
       'custom.status-log': CustomStatusLog;
       'custom.status-of-pick-drop': CustomStatusOfPickDrop;
+      'product.variation': ProductVariation;
       'shared.items': SharedItems;
       'shared.products': SharedProducts;
     }

@@ -1,0 +1,37 @@
+{
+  "collectionName": "components_product_variations",
+  "info": {
+    "displayName": "Product Variation",
+    "description": "Product variations like size, color, etc."
+  },
+  "options": {},
+  "attributes": {
+    "size": {
+      "type": "string"
+    },
+    "color": {
+      "type": "string"
+    },
+    "stock": {
+      "type": "integer",
+      "default": 0
+    },
+    "price_adjustment": {
+      "type": "decimal",
+      "default": 0
+    },
+    "original_price_adjustment": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Original price adjustment before discount"
+    },
+    "on_sale": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this variation has its own sale"
+    },
+    "sku": {
+      "type": "string"
+    }
+  }
+}

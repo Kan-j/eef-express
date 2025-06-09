@@ -16,7 +16,7 @@ export default factories.createCoreService('api::wishlist.wishlist', ({ strapi }
         filters: {
           users_permissions_user: { id: userId },
         },
-        populate: ['products', 'products.images'],
+        populate: ['item', 'item.product', 'item.product.images', 'item.product.variations'],
       });
 
       // If user has wishlists
@@ -59,110 +59,180 @@ export default factories.createCoreService('api::wishlist.wishlist', ({ strapi }
   },
 
   /**
-   * Add a product to the wishlist
+   * Add a product to the wishlist with variation support
    */
-  async addProduct(userId: number, productId: number) {
+  async addProduct(userId: number, productId: number, variationId?: string | number) {
     try {
       // Get the user's wishlist
       const wishlist = await this.getUserWishlist(userId);
 
-      // Check if the product exists
-      const product = await strapi.entityService.findOne('api::product.product', productId, {
-        populate: ['images'],
+      // Convert variationId to string if provided
+      const variationIdString = variationId ? String(variationId) : null;
+
+      // Check if the product exists and get variation details
+      const { product, variation } = await strapi.service('api::product.product').checkProductStock(
+        productId,
+        1, // We don't need quantity check for wishlist, just use 1
+        variationIdString
+      );
+
+      // Get current items in wishlist
+      const currentWishlist = await strapi.entityService.findOne('api::wishlist.wishlist', wishlist.id, {
+        populate: ['item', 'item.product'],
       });
 
-      if (!product) {
-        throw new Error('Product not found');
-      }
+      const existingItems = (currentWishlist as any).item || [];
 
-      // Get current products in wishlist
-      const currentProducts = await strapi.entityService.findOne('api::wishlist.wishlist', wishlist.id, {
-        populate: ['products'],
+      // Check if the same product+variation combination is already in wishlist
+      const existingItemIndex = existingItems.findIndex((item: any) => {
+        const productMatch = (item.product && typeof item.product === 'object')
+          ? item.product.id === productId
+          : item.product === productId;
+
+        const variationMatch = String(item.variation_id || '') === String(variationIdString || '');
+
+        return productMatch && variationMatch;
       });
 
-      // Check if product is already in wishlist
-      const productIds = (currentProducts as any).products.map((p: any) => p.id);
-      if (productIds.includes(productId)) {
-        throw new Error('Product is already in wishlist');
+      if (existingItemIndex !== -1) {
+        if (variationIdString) {
+          throw new Error('This product variation is already in your wishlist');
+        } else {
+          throw new Error('Product is already in wishlist');
+        }
       }
 
-      // Add product to wishlist
+      // Create new wishlist item
+      const newItem: any = {
+        product: productId,
+        quantity: 1, // Wishlist items always have quantity 1
+        variation_id: variationIdString,
+      };
+
+      // If item has a variation, store the variation details
+      if (variation) {
+        newItem.variation_details = {
+          size: variation.size,
+          color: variation.color,
+          sku: variation.sku,
+          price_adjustment: variation.price_adjustment,
+          original_price_adjustment: variation.original_price_adjustment,
+          on_sale: variation.on_sale,
+          stock_at_time_of_add: variation.stock,
+        };
+      }
+
+      // Add item to wishlist
       const updatedWishlist = await strapi.entityService.update('api::wishlist.wishlist', wishlist.id, {
         data: {
-          products: {
-            connect: [productId],
-          } as any,
+          item: [
+            ...existingItems,
+            newItem,
+          ],
         },
-        populate: ['products', 'products.images'],
+        populate: ['item', 'item.product', 'item.product.images', 'item.product.variations'],
       });
 
       return updatedWishlist;
     } catch (error) {
-      console.error('Error in addProduct:', error);
-      throw error;
+      // Only log unexpected errors, not user validation errors
+      if (error.message && (
+          error.message.includes('not found') ||
+          error.message.includes('already in') ||
+          error.message.includes('not available') ||
+          error.message.includes('Variation ID is required')
+        )) {
+        // These are expected user errors, just throw without logging
+        throw error;
+      } else {
+        // Log unexpected errors
+        console.error('Unexpected error in addProduct:', error);
+        throw error;
+      }
     }
   },
 
   /**
-   * Remove a product from the wishlist
+   * Remove a product from the wishlist with variation support
    */
-  async removeProduct(userId: number, productId: number) {
+  async removeProduct(userId: number, productId: number, variationId?: string | number) {
     try {
       // Get the user's wishlist
       const wishlist = await this.getUserWishlist(userId);
 
-      // Get current products in wishlist
-      const currentProducts = await strapi.entityService.findOne('api::wishlist.wishlist', wishlist.id, {
-        populate: ['products'],
+      // Convert variationId to string if provided
+      const variationIdString = variationId ? String(variationId) : null;
+
+      // Get current items in wishlist
+      const currentWishlist = await strapi.entityService.findOne('api::wishlist.wishlist', wishlist.id, {
+        populate: ['item', 'item.product'],
       });
 
-      // Check if product is in wishlist
-      const productIds = (currentProducts as any).products.map((p: any) => p.id);
-      if (!productIds.includes(productId)) {
-        throw new Error('Product not found in wishlist');
+      const existingItems = (currentWishlist as any).item || [];
+
+      // Find the item to remove
+      const itemIndex = existingItems.findIndex((item: any) => {
+        const productMatch = (item.product && typeof item.product === 'object')
+          ? item.product.id === productId
+          : item.product === productId;
+
+        if (!variationIdString) {
+          // If no variation specified, find first item with this product (backward compatibility)
+          return productMatch;
+        }
+
+        // If variation specified, must match both product and variation
+        const variationMatch = String(item.variation_id || '') === variationIdString;
+        return productMatch && variationMatch;
+      });
+
+      if (itemIndex === -1) {
+        if (variationIdString) {
+          throw new Error(`Item not found in wishlist: Product ID ${productId} with variation ID ${variationIdString}`);
+        } else {
+          throw new Error(`Product not found in wishlist: Product ID ${productId}`);
+        }
       }
 
-      // Remove product from wishlist
+      // Remove the item from the array
+      const updatedItems = existingItems.filter((_, index) => index !== itemIndex);
+
+      // Update the wishlist
       const updatedWishlist = await strapi.entityService.update('api::wishlist.wishlist', wishlist.id, {
         data: {
-          products: {
-            disconnect: [productId],
-          } as any,
+          item: updatedItems,
         },
-        populate: ['products', 'products.images'],
+        populate: ['item', 'item.product', 'item.product.images', 'item.product.variations'],
       });
 
       return updatedWishlist;
     } catch (error) {
-      console.error('Error in removeProduct:', error);
-      throw error;
+      // Only log unexpected errors, not user validation errors
+      if (error.message && error.message.includes('not found')) {
+        // These are expected user errors, just throw without logging
+        throw error;
+      } else {
+        // Log unexpected errors
+        console.error('Unexpected error in removeProduct:', error);
+        throw error;
+      }
     }
   },
 
   /**
-   * Clear all products from the wishlist
+   * Clear all items from the wishlist
    */
   async clearWishlist(userId: number) {
     try {
       // Get the user's wishlist
       const wishlist = await this.getUserWishlist(userId);
 
-      // Clear all products
-      // First get all product IDs
-      const currentProducts = await strapi.entityService.findOne('api::wishlist.wishlist', wishlist.id, {
-        populate: ['products'],
-      });
-
-      const productIds = (currentProducts as any).products.map((p: any) => p.id);
-
-      // Then disconnect all products if there are any
+      // Clear all items
       const updatedWishlist = await strapi.entityService.update('api::wishlist.wishlist', wishlist.id, {
         data: {
-          products: productIds.length > 0 ? {
-            disconnect: productIds,
-          } as any : undefined,
+          item: [],
         },
-        populate: ['products'],
+        populate: ['item'],
       });
 
       return updatedWishlist;
@@ -173,21 +243,40 @@ export default factories.createCoreService('api::wishlist.wishlist', ({ strapi }
   },
 
   /**
-   * Check if a product is in the wishlist
+   * Check if a product (with optional variation) is in the wishlist
    */
-  async isProductInWishlist(userId: number, productId: number) {
+  async isProductInWishlist(userId: number, productId: number, variationId?: string | number) {
     try {
       // Get the user's wishlist
       const wishlist = await this.getUserWishlist(userId);
 
-      // Get current products in wishlist
-      const currentProducts = await strapi.entityService.findOne('api::wishlist.wishlist', wishlist.id, {
-        populate: ['products'],
+      // Convert variationId to string if provided
+      const variationIdString = variationId ? String(variationId) : null;
+
+      // Get current items in wishlist
+      const currentWishlist = await strapi.entityService.findOne('api::wishlist.wishlist', wishlist.id, {
+        populate: ['item', 'item.product'],
       });
 
-      // Check if product is in wishlist
-      const productIds = (currentProducts as any).products.map((p: any) => p.id);
-      return productIds.includes(productId);
+      const existingItems = (currentWishlist as any).item || [];
+
+      // Check if the specific product+variation combination is in wishlist
+      const isInWishlist = existingItems.some((item: any) => {
+        const productMatch = (item.product && typeof item.product === 'object')
+          ? item.product.id === productId
+          : item.product === productId;
+
+        if (!variationIdString) {
+          // If no variation specified, check if any item with this product exists
+          return productMatch;
+        }
+
+        // If variation specified, must match both product and variation
+        const variationMatch = String(item.variation_id || '') === variationIdString;
+        return productMatch && variationMatch;
+      });
+
+      return isInWishlist;
     } catch (error) {
       console.error('Error in isProductInWishlist:', error);
       throw error;

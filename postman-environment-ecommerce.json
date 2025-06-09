@@ -1,0 +1,79 @@
+{
+  "id": "eef-express-ecommerce-env",
+  "name": "EEF Express E-commerce Environment",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:1337/api",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "user_email",
+      "value": "test@example.com",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "user_password",
+      "value": "password123",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "productId",
+      "value": "1",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "orderId",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "cartItemId",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "paymentId",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "categoryId",
+      "value": "1",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "variationId",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "variationId2",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "variationStock",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}
