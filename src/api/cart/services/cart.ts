@@ -730,12 +730,21 @@ export default factories.createCoreService('api::cart.cart', ({ strapi }) => ({
       (!product.sale_start_date || new Date(product.sale_start_date) <= now) &&
       (!product.sale_end_date || new Date(product.sale_end_date) >= now);
 
+    const originalPrice = parseFloat(product.original_price || product.price || 0);
+
     if (isOnSale) {
-      // Use the discounted price when on sale
-      return parseFloat(product.price || 0);
+      // If discount percentage is set, calculate discounted price from original price
+      if (product.discount_percentage && product.discount_percentage > 0) {
+        const discountAmount = (originalPrice * parseFloat(product.discount_percentage)) / 100;
+        const discountedPrice = originalPrice - discountAmount;
+        return Math.max(0, discountedPrice); // Ensure price doesn't go negative
+      } else {
+        // Use the manually set discounted price when on sale
+        return parseFloat(product.price || 0);
+      }
     } else {
-      // Use original price when not on sale, fallback to price if original_price not available
-      return parseFloat(product.original_price || product.price || 0);
+      // Use original price when not on sale
+      return originalPrice;
     }
   },
 

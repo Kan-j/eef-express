@@ -580,14 +580,30 @@ export default {
       const cartService = strapi.service('api::cart.cart');
       let itemPrice = cartService.calculateProductPrice(item.product);
 
+      // Calculate detailed price breakdown
+      const originalPrice = parseFloat(item.product.original_price || item.product.price || 0);
+      const isOnSale = item.product.on_sale || false;
+      const discountPercentage = item.product.discount_percentage || null;
+
+      let calculatedDiscountedPrice = parseFloat(item.product.price || 0);
+      let discountAmount = 0;
+
+      // If discount percentage is set and product is on sale, calculate the discounted price
+      if (isOnSale && discountPercentage && discountPercentage > 0) {
+        discountAmount = (originalPrice * parseFloat(discountPercentage)) / 100;
+        calculatedDiscountedPrice = Math.max(0, originalPrice - discountAmount);
+      }
+
       let priceBreakdown: any = {
-        originalPrice: parseFloat(item.product.original_price || item.product.price || 0),
-        discountedPrice: parseFloat(item.product.price || 0),
+        originalPrice,
+        discountedPrice: calculatedDiscountedPrice,
         effectivePrice: itemPrice,
+        discountPercentage,
+        discountAmount,
+        calculatedFromPercentage: isOnSale && discountPercentage && discountPercentage > 0,
         variationAdjustment: 0,
         finalPrice: itemPrice,
-        isOnSale: item.product.on_sale || false,
-        discountPercentage: item.product.discount_percentage || null
+        isOnSale,
       };
 
       // Add variation price adjustment if item has a variation (considering variation sales)
