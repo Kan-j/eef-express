@@ -9,5 +9,14 @@ module.exports = {
         auth: true, // requires user to be logged in
       },
     },
+    {
+      method: 'DELETE',
+      path: '/users/me',
+      handler: 'user.deleteMe',
+      config: {
+        policies: [],
+        auth: true, // requires user to be logged in
+      },
+    },
   ],
 };

@@ -16,4 +16,28 @@ module.exports = {
       user: updatedUser,
     });
   },
+
+  async deleteMe(ctx) {
+    try {
+      const userId = ctx.state.user.id; // Authenticated user's ID
+      console.log(ctx.state.user)
+
+      if (!userId) {
+        return ctx.unauthorized('You must be logged in');
+      }
+
+      // Delete the user account
+      await strapi
+        .plugin('users-permissions')
+        .service('user')
+        .remove({id: userId});
+
+      ctx.send({
+        message: 'Account deleted successfully',
+      });
+    } catch (error) {
+      console.error('Error deleting user account:', error);
+      ctx.throw(500, error.message || 'An error occurred while deleting the account');
+    }
+  },
 };
