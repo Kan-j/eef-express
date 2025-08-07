@@ -235,12 +235,9 @@ export default factories.createCoreService('api::pick-drop.pick-drop', ({ strapi
     try {
       console.log(`💰 Calculating delivery fee for type: ${deliveryType}`);
 
-      // Cast to the expected enum type
-      const deliveryTypeEnum = deliveryType as 'Express' | 'Same-Day' | 'Next-Day' | 'Scheduled' | 'Standard';
-
       const deliveryPricing = await strapi.entityService.findMany('api::delivery-pricing.delivery-pricing', {
         filters: {
-          type: deliveryTypeEnum,
+          type: deliveryType,
         },
       });
 
@@ -397,14 +394,16 @@ export default factories.createCoreService('api::pick-drop.pick-drop', ({ strapi
   async updateDeliveryType(pickDropId: number, deliveryType: string, userId?: number) {
     console.log(`🚚 Updating delivery type for pick-drop ${pickDropId} to ${deliveryType}`);
 
-    // Validate delivery type
-    const validDeliveryTypes = ['Standard', 'Same-Day', 'Next-Day', 'Scheduled', 'Express'];
-    if (!validDeliveryTypes.includes(deliveryType)) {
-      throw new Error(`Invalid delivery type. Must be one of: ${validDeliveryTypes.join(', ')}`);
-    }
+    // Validate delivery type exists in delivery-pricing
+    const deliveryPricingExists = await strapi.entityService.findMany('api::delivery-pricing.delivery-pricing', {
+      filters: {
+        type: deliveryType,
+      },
+    });
 
-    // Cast to the expected enum type
-    const deliveryTypeEnum = deliveryType as 'Same-Day' | 'Next-Day' | 'Scheduled' | 'Standard' | 'Express';
+    if (!deliveryPricingExists || deliveryPricingExists.length === 0) {
+      throw new Error(`Invalid delivery type: ${deliveryType}. No pricing found for this delivery type.`);
+    }
 
     // Build filters
     const filters: any = { id: pickDropId };
@@ -430,7 +429,7 @@ export default factories.createCoreService('api::pick-drop.pick-drop', ({ strapi
     }
 
     // Calculate new delivery fee
-    const newDeliveryFee = await this.calculateDeliveryFee(deliveryTypeEnum);
+    const newDeliveryFee = await this.calculateDeliveryFee(deliveryType);
     const subtotal = (pickDrop as any).subtotal || 0;
     const newTotalAmount = subtotal + newDeliveryFee;
 
@@ -441,7 +440,7 @@ export default factories.createCoreService('api::pick-drop.pick-drop', ({ strapi
     // Update the pick-drop request
     const updatedPickDrop = await strapi.entityService.update('api::pick-drop.pick-drop', pickDropId, {
       data: {
-        deliveryType: deliveryTypeEnum,
+        deliveryType: deliveryType,
         deliveryFee: newDeliveryFee,
         totalAmount: newTotalAmount,
       },

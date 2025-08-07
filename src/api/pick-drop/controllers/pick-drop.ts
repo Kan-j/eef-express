@@ -319,12 +319,6 @@ export default factories.createCoreController('api::pick-drop.pick-drop', ({ str
         return ctx.badRequest('Delivery type is required');
       }
 
-      // Validate delivery type
-      const validDeliveryTypes = ['Standard', 'Same-Day', 'Next-Day', 'Scheduled', 'Express'];
-      if (!validDeliveryTypes.includes(deliveryType)) {
-        return ctx.badRequest(`Invalid delivery type. Must be one of: ${validDeliveryTypes.join(', ')}`);
-      }
-
       const updatedPickDrop = await strapi.service('api::pick-drop.pick-drop').updateDeliveryType(
         parseInt(id),
         deliveryType,

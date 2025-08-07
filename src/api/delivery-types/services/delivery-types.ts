@@ -33,7 +33,8 @@ export default {
    * Get default description for delivery type
    */
   getDefaultDescription(type: string): string {
-    const descriptions = {
+    // Default descriptions for common delivery types
+    const descriptions: Record<string, string> = {
       'Standard': '3-5 business days',
       'Express': '1-2 business days',
       'Same-Day': 'Same day delivery (order before 2 PM)',
@@ -47,7 +48,8 @@ export default {
    * Get estimated delivery time
    */
   getEstimatedTime(type: string): string {
-    const times = {
+    // Default estimated times for common delivery types
+    const times: Record<string, string> = {
       'Standard': '3-5 days',
       'Express': '1-2 days',
       'Same-Day': 'Same day',
@@ -61,7 +63,8 @@ export default {
    * Get delivery icon
    */
   getDeliveryIcon(type: string): string {
-    const icons = {
+    // Default icons for common delivery types
+    const icons: Record<string, string> = {
       'Standard': 'truck',
       'Express': 'shipping-fast',
       'Same-Day': 'clock',

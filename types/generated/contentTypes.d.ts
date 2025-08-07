@@ -462,9 +462,7 @@ export interface ApiDeliveryPricingDeliveryPricing
     > &
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
-    type: Schema.Attribute.Enumeration<
-      ['Express', 'Same-Day', 'Next-Day', 'Scheduled', 'Standard']
-    >;
+    type: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -522,9 +520,7 @@ export interface ApiOrderOrder extends Struct.CollectionTypeSchema {
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     deliveryFee: Schema.Attribute.Decimal;
-    deliveryType: Schema.Attribute.Enumeration<
-      ['Standard', 'Scheduled', 'Next-Day', 'Same-Day', 'Express']
-    >;
+    deliveryType: Schema.Attribute.String;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::order.order'> &
       Schema.Attribute.Private;
@@ -629,9 +625,7 @@ export interface ApiPickDropPickDrop extends Struct.CollectionTypeSchema {
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     deliveryFee: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
-    deliveryType: Schema.Attribute.Enumeration<
-      ['Standard', 'Same-Day', 'Next-Day', 'Scheduled', 'Express']
-    >;
+    deliveryType: Schema.Attribute.String;
     dropOffAddress: Schema.Attribute.String;
     dropOffDateTime: Schema.Attribute.DateTime;
     dropOffLocation: Schema.Attribute.String;

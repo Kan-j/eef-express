@@ -75,14 +75,7 @@
       "inversedBy": "pick_drops"
     },
     "deliveryType": {
-      "type": "enumeration",
-      "enum": [
-        "Standard",
-        "Same-Day",
-        "Next-Day",
-        "Scheduled",
-        "Express"
-      ]
+      "type": "string"
     },
     "scheduledDateTime": {
       "type": "datetime"

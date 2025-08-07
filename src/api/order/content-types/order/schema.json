@@ -18,14 +18,7 @@
       "inversedBy": "orders"
     },
     "deliveryType": {
-      "type": "enumeration",
-      "enum": [
-        "Standard",
-        "Scheduled",
-        "Next-Day",
-        "Same-Day",
-        "Express"
-      ]
+      "type": "string"
     },
     "deliveryFee": {
       "type": "decimal"

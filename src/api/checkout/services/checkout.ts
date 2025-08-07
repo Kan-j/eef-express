@@ -89,10 +89,9 @@ export default {
       }
 
       // Calculate delivery fee
-      const deliveryTypeEnum = checkoutData.deliveryType as 'Standard' | 'Express' | 'Same-Day' | 'Next-Day' | 'Scheduled';
       const deliveryPricing = await strapi.entityService.findMany('api::delivery-pricing.delivery-pricing', {
         filters: {
-          type: deliveryTypeEnum,
+          type: checkoutData.deliveryType,
         },
       });
 
@@ -549,12 +548,9 @@ export default {
     const deliveryType = options.deliveryType || 'Standard';
     let deliveryFee = 0;
 
-    // Cast the delivery type to the expected enum type
-    const deliveryTypeEnum = deliveryType as 'Standard' | 'Express' | 'Same-Day' | 'Next-Day' | 'Scheduled';
-
     const deliveryPricing = await strapi.entityService.findMany('api::delivery-pricing.delivery-pricing', {
       filters: {
-        type: deliveryTypeEnum,
+        type: deliveryType,
       },
     });
 

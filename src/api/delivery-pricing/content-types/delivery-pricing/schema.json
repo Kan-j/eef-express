@@ -18,14 +18,7 @@
       "type": "text"
     },
     "type": {
-      "type": "enumeration",
-      "enum": [
-        "Express",
-        "Same-Day",
-        "Next-Day",
-        "Scheduled",
-        "Standard"
-      ]
+      "type": "string"
     }
   }
 }
